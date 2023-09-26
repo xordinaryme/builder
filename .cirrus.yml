@@ -24,4 +24,4 @@ task:
   Build_script:
       - ./scripts/build.sh || source scripts/build.sh
   Upload_script:
-      - ./scripts/upload.sh || source scripts/setup.sh
+      - ./scripts/upload.sh || source scripts/upload.sh
