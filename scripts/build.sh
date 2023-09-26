@@ -1,9 +1,8 @@
 #!/bin/bash
 build() {
-source ./build/envsetup.sh #this command sometimes do the jobs
-. build/envsetup.sh  #sometimes this one do the jobs, it depends on system itself. Better use both
+source build/envsetup.sh || . build/envsetup.sh
 bash device/xiaomi/fleur/prebuilts/vendor.sh
-lunch $MAKEFILENAME_$DEVICE-$VARIENT
+lunch $MAKEFILENAME-$VARIENT
 export SKIP_ABI_CHECKS=true
 export SKIP_API_CHECKS=true
 export ALLOW_MISSING_DEPENDENCIES=true

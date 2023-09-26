@@ -1,10 +1,7 @@
 #!/bin/bash
 setup() {
-sudo apt update &&sudo apt install pigz wget jq -y
-wget https://github.com/akhilnarang/scripts/raw/master/setup/android_build_env.sh
-chmod +rwx android_build_env.sh
-./android_build_env.sh || source android_build_env.sh
-rm -rf android_build_env.sh
+sudo apt update &&sudo apt install pigz wget jq curl repo -y
+sudo apt upgrade -y
 }
 echo "Setting Up AOSP Build Environment"
 setup

@@ -2,7 +2,7 @@ env:
     DEVICE: fleur #Enter your device codename
     ROMREPO: https://github.com/SuperiorOS/manifest.git -b thirteen #Enter roms's repo link
     LOCALMANIFEST: https://github.com/RT1648/local_manifest-fleurprebuilt.git #Enter device local_manifest link & make sure all the neccessary repos are available in your localmanifest
-    MAKEFILENAME: superior #Enter makefile name example-aosp,arrow,lineage,havoc,etc...
+    MAKEFILENAME: superior_fleur #Enter makefile name example-aosp_fleur,etc...
     VARIENT: userdebug #Enter build varient among these - eng,user & userdebug
     TARGET: mka bacon #Enter target example- m bacon, make bacon , mka bacon,etc...
     F: ci:ci #Your Gdrive Folder Path which u have set in rclone
@@ -18,10 +18,10 @@ task:
       cpu: 8
       memory: 32G
   Setup_script:
-      - ./scripts/setup.sh || source scripts/setup.sh
+      - ./scripts/setup || source scripts/setup
   Sync_script:
-      - ./scripts/sync.sh || source scripts/sync.sh
+      - ./scripts/sync || source scripts/sync
   Build_script:
-      - ./scripts/build.sh || source scripts/build.sh
+      - ./scripts/build || source scripts/build
   Upload_script:
-      - ./scripts/upload.sh || source scripts/setup.sh
+      - ./scripts/upload || source scripts/setup
