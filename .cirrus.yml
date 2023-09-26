@@ -1,0 +1,27 @@
+env:
+    DEVICE: #Enter your device codename
+    ROMREPO: #Enter roms's repo link
+    LOCALMANIFEST: #Enter device local_manifest link & make sure all the neccessary repos are available in your localmanifest
+    MAKEFILENAME: #Enter makefile name example-aosp,arrow,lineage,havoc,etc...
+    VARIENT: #Enter build varient among these - eng,user & userdebug
+    TARGET: #Enter target example- m bacon, make bacon , mka bacon,etc...
+    F: #Your Gdrive Folder Path which u have set in rclone
+    E: #Encrypted id which u obtained from cirrusci after encrypting your rclone values
+    LINK: #Enter ccache link if u already have for any rom, if u dont have one, put ### in the field
+
+# DONT MODIFY FROM HERE #
+task:
+  name: "AOSP"
+  timeout_in: 120m
+  container:
+      image: shazuxdd/cirrus:latest
+      cpu: 8
+      memory: 32G
+  Setup_script:
+      - ./scripts/setup.sh || source scripts/setup.sh
+  Sync_script:
+      - ./scripts/sync.sh || source scripts/sync.sh
+  Build_script:
+      - ./scripts/build.sh || source scripts/build.sh
+  Upload_script:
+      - ./scripts/upload.sh || source scripts/setup.sh
