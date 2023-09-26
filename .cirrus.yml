@@ -1,13 +1,13 @@
 env:
-    DEVICE: #Enter your device codename
-    ROMREPO: #Enter roms's repo link
-    LOCALMANIFEST: #Enter device local_manifest link & make sure all the neccessary repos are available in your localmanifest
-    MAKEFILENAME: #Enter makefile name example-aosp,arrow,lineage,havoc,etc...
-    VARIENT: #Enter build varient among these - eng,user & userdebug
-    TARGET: #Enter target example- m bacon, make bacon , mka bacon,etc...
-    F: #Your Gdrive Folder Path which u have set in rclone
-    E: #Encrypted id which u obtained from cirrusci after encrypting your rclone values
-    LINK: #Enter ccache link if u already have for any rom, if u dont have one, put ### in the field
+    DEVICE: fleur #Enter your device codename
+    ROMREPO: https://github.com/SuperiorOS/manifest.git -b thirteen #Enter roms's repo link
+    LOCALMANIFEST: https://github.com/RT1648/local_manifest-fleurprebuilt.git #Enter device local_manifest link & make sure all the neccessary repos are available in your localmanifest
+    MAKEFILENAME: superior #Enter makefile name example-aosp,arrow,lineage,havoc,etc...
+    VARIENT: userdebug #Enter build varient among these - eng,user & userdebug
+    TARGET: mka bacon #Enter target example- m bacon, make bacon , mka bacon,etc...
+    F: ci:ci #Your Gdrive Folder Path which u have set in rclone
+    E: ENCRYPTED[9ae7cbda659d9e2f3f3f38f26aaa820c87faa6f573bf73493f30395da502340c34b652d0140459e5c310ea6b015a415d] #Encrypted id which u obtained from cirrusci after encrypting your rclone values
+    LINK: https://sourceforge.net/projects/fleur/files/ccache/Superior/ccache.tar.gz/download #Enter ccache link if u already have for any rom, if u dont have one, put ### in the field
 
 # DONT MODIFY FROM HERE #
 task:
