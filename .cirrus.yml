@@ -4,7 +4,7 @@ env:
     LOCALMANIFEST: https://github.com/belowzeroiq/local_manifest.git #Enter device local_manifest link & make sure all the neccessary repos are available in your localmanifest
     MAKEFILENAME: lineage_topaz #Enter makefile name example-aosp_fleur,etc...
     VARIENT: userdebug #Enter build varient among these - eng,user & userdebug
-    EXTRACMD: #cd system/sepolicy/vendor && rm -rf hal_fingerprint_default.te && rm -rf hal_health_default.te && rm -rf rild.te && rm -rf hal_light_default.te && rm -rf mediacodec.te && rm -rf plat_policy_for_vendor.cil && cd ~/ #If u want run any cmd just before starting build
+    EXTRACMD: . build/envsetup.sh && lunch lineage_topaz-userdebug #If u want run any cmd just before starting build
     TARGET: mka bacon #Enter target example- m bacon, make bacon , mka bacon,etc...
     #F: ci:ci #Your Gdrive Folder Path which u have set in rclone
     #E: ENCRYPTED[9ae7cbda659d9e2f3f3f38f26aaa820c87faa6f573bf73493f30395da502340c34b652d0140459e5c310ea6b015a415d] #Encrypted id which u obtained from cirrusci after encrypting your rclone values
