@@ -1,7 +1,6 @@
 #!/bin/bash
 build() {
 source build/envsetup.sh || . build/envsetup.sh
-#bash device/xiaomi/fleur/prebuilts/vendor.sh
 lunch $MAKEFILENAME-$VARIENT
 export SKIP_ABI_CHECKS=true
 export SKIP_API_CHECKS=true
