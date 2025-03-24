@@ -6,7 +6,7 @@ on:
 jobs:
   build:
     if: github.event.repository.owner.id == github.event.sender.id
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
@@ -24,6 +24,6 @@ jobs:
       uses: actions-js/push@master
       with:
         github_token: ${{ secrets.GH_TOKEN }}
-        author_email: 'rohitttiwari52@gmail.com'
-        author_name: 'ROHIT'
+        author_email: 'belowzeroiq@proton.me'
+        author_name: 'LIAM ANUGRAH'
         message: 'BUILD TRIGGERED'
