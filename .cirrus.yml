@@ -1,14 +1,11 @@
 env:
-    DEVICE: topaz #Enter your device codename
-    ROMREPO: https://github.com/LineageOS/android.git -b lineage-20.0 #Enter roms's repo link
-    LOCALMANIFEST: https://github.com/belowzeroiq/local_manifest.git #Enter device local_manifest link & make sure all the neccessary repos are available in your localmanifest
-    MAKEFILENAME: lineage_topaz #Enter makefile name example-aosp_fleur,etc...
-    VARIENT: userdebug #Enter build varient among these - eng,user & userdebug
-    EXTRACMD: #If u want run any cmd just before starting build
-    TARGET: mka bacon #Enter target example- m bacon, make bacon , mka bacon,etc...
-    #F: ci:ci #Your Gdrive Folder Path which u have set in rclone
-    #E: ENCRYPTED[9ae7cbda659d9e2f3f3f38f26aaa820c87faa6f573bf73493f30395da502340c34b652d0140459e5c310ea6b015a415d] #Encrypted id which u obtained from cirrusci after encrypting your rclone values
-    #LINK: #https://sourceforge.net/projects/fleur/files/ccache/Superior/ccache.tar.gz/download #Enter ccache link if u already have for any rom, if u dont have one, put ### in the field
+    DEVICE: topaz # Enter your device codename
+    ROMREPO: https://github.com/LineageOS/android.git -b lineage-20.0 # Enter ROM repo link
+    LOCALMANIFEST: https://github.com/belowzeroiq/local_manifest.git # Enter local_manifest link
+    MAKEFILENAME: lineage_topaz # Enter makefile name (example: aosp_fleur)
+    VARIENT: userdebug # Enter build variant (eng, user, userdebug)
+    EXTRACMD: # If you want to run any extra command before build
+    TARGET: mka bacon # Enter target (example: m bacon, make bacon, mka bacon)
 
 # DONT MODIFY FROM HERE #
 task:
@@ -18,11 +15,22 @@ task:
       image: apon77/aosp:cirrus
       cpu: 8
       memory: 32G
+
   Setup_script:
+      - |
+        echo "Setting up swap (50GB)..."
+        sudo fallocate -l 50G /swapfile
+        sudo chmod 600 /swapfile
+        sudo mkswap /swapfile
+        sudo swapon /swapfile
+        free -h  # Verify swap is active
       - ./scripts/setup.sh || source scripts/setup.sh
+
   Sync_script:
       - ./scripts/sync.sh || source scripts/sync.sh
+
   Build_script:
       - ./scripts/build.sh || source scripts/build.sh
+
   Upload_script:
       - ./scripts/upload.sh || source scripts/upload.sh
