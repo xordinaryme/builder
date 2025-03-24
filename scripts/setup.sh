@@ -5,11 +5,3 @@ sudo apt upgrade -y
 }
 echo "Setting Up AOSP Build Environment"
 setup
-
-setswap() {
-sudo fallocate -l 70G /swapfile  && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile
-sudo cat /proc/sys/vm/swappiness
-sudo sysctl vm.swappiness=50
-}
-echo "Setting Up Swap Memory"
-setswap
