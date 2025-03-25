@@ -4,7 +4,7 @@ env:
     LOCALMANIFEST: https://github.com/belowzeroiq/local_manifest.git # Enter local_manifest link
     MAKEFILENAME: lineage_topaz # Enter makefile name (example: aosp_fleur)
     VARIENT: userdebug # Enter build variant (eng, user, userdebug)
-    EXTRACMD: rm -rf vendor/qcom/opensource/display # If you want to run any extra command before build
+    EXTRACMD: rm -rf hardware/qcom-caf/sm6225/display/services/config/src/Android.bp && rm -rf hardware/qcom-caf/sm6225/display/gralloc/Android.bp && rm -rf hardware/qcom-caf/sm6225/display/libqdmetadata/Android.bp # If you want to run any extra command before build
     TARGET: mka bacon # Enter target (example: m bacon, make bacon, mka bacon)
 
 # DONT MODIFY FROM HERE #
