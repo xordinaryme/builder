@@ -7,8 +7,6 @@ rm -rf hardware/qcom/audio
 rm -rf hardware/qcom/display
 rm -rf hardware/qcom/media
 rm -rf vendor/qcom/opensource/arpal
-rm -rf vendor/qcom/opensource/dataipa
-rm -rf vendor/qcom/opensource/data-ipa-cfg-mgr
 rm -rf vendor/qcom/opensource/agm
 rm -rf vendor/lineage
 
@@ -18,8 +16,6 @@ git clone --depth=1 https://github.com/Xiaomi-SD685-Devs/hardware_qcom_audio -b 
 git clone --depth=1 https://github.com/Xiaomi-SD685-Devs/hardware_qcom_display -b lineage-20.0-caf-sm6225 hardware/qcom/display
 git clone --depth=1 https://github.com/Xiaomi-SD685-Devs/hardware_qcom_media -b lineage-20.0-caf-sm6225 hardware/qcom/media
 git clone --depth=1 https://github.com/Xiaomi-SD685-Devs/vendor_qcom_opensource_arpal -b lineage-20.0-caf-sm6225 vendor/qcom/opensource/arpal
-git clone --depth=1 https://github.com/Xiaomi-SD685-Devs/vendor_qcom_opensource_dataipa -b lineage-20.0-caf-sm6225 vendor/qcom/opensource/dataipa
-git clone --depth=1 https://github.com/Xiaomi-SD685-Devs/vendor_qcom_opensource_data-ipa-cfg-mgr -b lineage-20.0-caf-sm6225 vendor/qcom/opensource/data-ipa-cfg-mgr
 git clone --depth=1 https://github.com/Xiaomi-SD685-Devs/vendor_qcom_opensource_agm -b lineage-20.0-caf-sm6225 vendor/qcom/opensource/agm
 git clone --depth=1 https://github.com/Xiaomi-SD685-Devs/vendor_lineage -b lineage-20.0 vendor/lineage
 }
