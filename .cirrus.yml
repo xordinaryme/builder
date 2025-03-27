@@ -22,6 +22,9 @@ task:
   Sync_script:
       - ./scripts/sync.sh || source scripts/sync.sh
 
+  Setup_device_requirements:
+      - ./scripts/device_requirements.sh || source scripts/device_requirements.sh
+
   Build_script:
       - ./scripts/build.sh || source scripts/build.sh
 
