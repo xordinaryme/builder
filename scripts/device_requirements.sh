@@ -17,7 +17,7 @@ rm -rf vendor/lineage
 # git clone --depth=1 https://github.com/Xiaomi-SD685-Devs/hardware_qcom_media -b lineage-20.0-caf-sm6225 hardware/qcom/media
 # git clone --depth=1 https://github.com/Xiaomi-SD685-Devs/vendor_qcom_opensource_arpal -b lineage-20.0-caf-sm6225 vendor/qcom/opensource/arpal
 # git clone --depth=1 https://github.com/Xiaomi-SD685-Devs/vendor_qcom_opensource_agm -b lineage-20.0-caf-sm6225 vendor/qcom/opensource/agm
-git clone --depth=1 https://github.com/passive-development/android_vendor_lineage -b lineage-20.0 vendor/lineage
+git clone --depth=1 https://github.com/belowzeroiq/vendor_lineage -b lineage-20.0 vendor/lineage
 }
 
 set_requirements
