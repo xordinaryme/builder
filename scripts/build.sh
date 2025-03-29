@@ -77,7 +77,7 @@ build() {
   source build/envsetup.sh || . build/envsetup.sh
   lunch $MAKEFILENAME-$VARIENT
   $EXTRACMD
-  $TARGET -j$(nproc --all) & sleep 95m
+  $TARGET -j$(nproc --all) # Removed the '&' to wait for the build to complete
 }
 
 # Trap to ensure ccache is uploaded on exit
@@ -87,4 +87,3 @@ echo "Initializing Build System"
 setup_ccache
 download_ccache
 build
-upload_ccache
