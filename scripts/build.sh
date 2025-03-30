@@ -1,75 +1,61 @@
 #!/bin/bash
 
+# Variables
+CCACHE_DIR=~/.ccache
+SOURCEFORGE_USER="belowzeroiq"
+SOURCEFORGE_PROJECT="ccache-archive"
+SOURCEFORGE_PATH="/home/frs/project/$SOURCEFORGE_PROJECT/ccache"
+CCACHE_ARCHIVE="ccache-$(date +'%Y%m%d%H%M%S').tar.gz"
+SAFE_TIME=6600  # Upload ccache 1 hour 50 min into the build
+
 # Function to set up ccache
 setup_ccache() {
   echo "Setting up ccache..."
   export CCACHE_DIR=~/.ccache
   export USE_CCACHE=1
-  ccache -M 50G # Set maximum cache size to 50GB
-  ccache -z     # Zero statistics
+  ccache -M 50G  # Set max size to 50GB
+  ccache -z      # Reset stats
   echo "Ccache setup complete."
 }
 
-# Function to download ccache from GitHub
+# Function to download ccache from SourceForge
 download_ccache() {
-  echo "Downloading ccache from GitHub repository..."
-  CCACHE_ARCHIVE="ccache-latest.tar.gz"
+  echo "Downloading ccache from SourceForge..."
+  LATEST_CCACHE=$(wget -qO- "https://sourceforge.net/projects/$SOURCEFORGE_PROJECT/files/ccache/" | \
+    grep -o 'ccache-.*\.tar\.gz' | sort | tail -n1)
 
-  # Download the latest ccache archive from the GitHub release
-  curl -s -H "Authorization: token $GITHUB_TOKEN" \
-    -L "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/latest" | \
-    jq -r '.assets[] | select(.name | startswith("ccache-")) | .browser_download_url' | \
-    xargs curl -s -L -o "$CCACHE_ARCHIVE"
-
-  if [ -f "$CCACHE_ARCHIVE" ]; then
-    echo "Extracting ccache archive..."
-    tar -xzf "$CCACHE_ARCHIVE" -C ~/
-    echo "Ccache downloaded and extracted successfully."
-  else
-    echo "No ccache archive found. Starting with an empty ccache."
-  fi
-}
-
-# Function to delete existing ccache from GitHub release
-delete_existing_ccache() {
-  echo "Deleting existing ccache from GitHub release..."
-  RELEASE_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-    "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/latest" | jq -r '.id')
-
-  if [ "$RELEASE_ID" == "null" ]; then
-    echo "No release found. Skipping deletion of existing ccache."
+  if [ -z "$LATEST_CCACHE" ]; then
+    echo "No ccache archive found on SourceForge. Starting fresh."
     return
   fi
 
-  ASSET_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-    "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/$RELEASE_ID/assets" | \
-    jq -r '.[] | select(.name | startswith("ccache-")) | .id')
-
-  if [ -n "$ASSET_ID" ]; then
-    curl -s -X DELETE -H "Authorization: token $GITHUB_TOKEN" \
-      "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/assets/$ASSET_ID"
-    echo "Deleted existing ccache asset with ID $ASSET_ID."
-  else
-    echo "No existing ccache asset found to delete."
-  fi
+  wget "https://downloads.sourceforge.net/project/$SOURCEFORGE_PROJECT/ccache/$LATEST_CCACHE" -O ccache-latest.tar.gz
+  tar -xzf ccache-latest.tar.gz -C ~/.ccache
+  echo "Ccache downloaded and extracted successfully."
 }
 
-# Function to upload ccache to GitHub
+# Function to upload ccache to SourceForge
 upload_ccache() {
-  echo "Uploading ccache to GitHub repository..."
-  CCACHE_ARCHIVE="ccache-$(date +'%Y%m%d%H%M%S').tar.gz"
-  tar -czf "$CCACHE_ARCHIVE" ~/.ccache
+  echo "Compressing ccache..."
+  tar -czf "$CCACHE_ARCHIVE" -C "$CCACHE_DIR" .
 
-  # Delete existing ccache asset
-  delete_existing_ccache
+  echo "Uploading ccache to SourceForge..."
+  rsync -e ssh "$CCACHE_ARCHIVE" "$SOURCEFORGE_USER@frs.sourceforge.net:$SOURCEFORGE_PATH/"
 
-  # Upload the new ccache archive
-  curl -s -X POST -H "Authorization: token $GITHUB_TOKEN" \
-    -H "Content-Type: application/gzip" \
-    --data-binary @"$CCACHE_ARCHIVE" \
-    "https://uploads.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/assets?name=$CCACHE_ARCHIVE"
+  echo "Ccache uploaded successfully."
+}
 
-  echo "Ccache uploaded successfully as $CCACHE_ARCHIVE."
+# Function to monitor time and upload ccache before Cirrus CI timeout
+monitor_time() {
+  while true; do
+    ELAPSED=${CIRRUS_DURATION:-0}
+    if (( ELAPSED >= SAFE_TIME )); then
+      echo "Timeout approaching! Saving ccache..."
+      upload_ccache
+      exit 0
+    fi
+    sleep 60
+  done
 }
 
 # Function to build the project
@@ -77,13 +63,20 @@ build() {
   source build/envsetup.sh || . build/envsetup.sh
   lunch $MAKEFILENAME-$VARIENT
   $EXTRACMD
-  $TARGET -j$(nproc --all) # Removed the '&' to wait for the build to complete
+  $TARGET -j$(nproc --all)
 }
 
-# Trap to ensure ccache is uploaded on exit
-trap upload_ccache EXIT
+# Start background timer
+monitor_time &  
+TIMER_PID=$!
 
-echo "Initializing Build System"
+# Start build
 setup_ccache
 download_ccache
 build
+
+# Kill the timer if build finishes early
+kill $TIMER_PID 2>/dev/null
+
+# Final ccache save
+upload_ccache
