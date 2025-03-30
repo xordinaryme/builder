@@ -6,6 +6,7 @@ env:
     VARIANT: userdebug # Enter build variant (eng, user, userdebug)
     EXTRACMD: #rm -rf hardware/qcom-caf/sm6225/display/services/config/src/Android.bp # If you want to run any extra command before build
     TARGET: mka bacon # Enter target (example: m bacon, make bacon, mka bacon)
+    CIRRUS_SHELL: "true"  # Enables terminal access
 
 # DONT MODIFY FROM HERE #
 task:
