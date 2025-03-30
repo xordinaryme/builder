@@ -8,6 +8,9 @@ SOURCEFORGE_PATH="/home/frs/project/$SOURCEFORGE_PROJECT/ccache"
 CCACHE_ARCHIVE="ccache-$(date +'%Y%m%d%H%M%S').tar.gz"
 SAFE_TIME=6000  # Upload ccache 1 hour 40 min into the build
 
+MAKEFILENAME="lineage_topaz"
+VARIANT="userdebug"
+
 # Function to set up ccache
 setup_ccache() {
   echo "Setting up ccache..."
