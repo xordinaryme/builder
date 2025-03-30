@@ -6,15 +6,15 @@ SOURCEFORGE_USER="belowzeroiq"
 SOURCEFORGE_PROJECT="ccache-archive"
 SOURCEFORGE_PATH="/home/frs/project/$SOURCEFORGE_PROJECT/ccache"
 CCACHE_ARCHIVE="ccache-$(date +'%Y%m%d%H%M%S').tar.gz"
-SAFE_TIME=6600  # Upload ccache 1 hour 50 min into the build
+SAFE_TIME=6000  # Upload ccache 1 hour 40 min into the build
 
 # Function to set up ccache
 setup_ccache() {
   echo "Setting up ccache..."
   export CCACHE_DIR=~/.ccache
   export USE_CCACHE=1
-  ccache -M 50G  # Set max size to 50GB
-  ccache -z      # Reset stats
+  ccache -M 50G
+  ccache -z
   echo "Ccache setup complete."
 }
 
@@ -30,7 +30,13 @@ download_ccache() {
   fi
 
   wget "https://downloads.sourceforge.net/project/$SOURCEFORGE_PROJECT/ccache/$LATEST_CCACHE" -O ccache-latest.tar.gz
-  tar -xzf ccache-latest.tar.gz -C ~/.ccache
+
+  # Extract safely
+  mkdir -p ~/.ccache_tmp
+  tar -xzf ccache-latest.tar.gz -C ~/.ccache_tmp
+  mv ~/.ccache_tmp/* ~/.ccache
+  rm -rf ~/.ccache_tmp ccache-latest.tar.gz
+
   echo "Ccache downloaded and extracted successfully."
 }
 
@@ -40,16 +46,22 @@ upload_ccache() {
   tar -czf "$CCACHE_ARCHIVE" -C "$CCACHE_DIR" .
 
   echo "Uploading ccache to SourceForge..."
-  rsync -e ssh "$CCACHE_ARCHIVE" "$SOURCEFORGE_USER@frs.sourceforge.net:$SOURCEFORGE_PATH/"
+  rsync -avz -e ssh "$CCACHE_ARCHIVE" "$SOURCEFORGE_USER@frs.sourceforge.net:$SOURCEFORGE_PATH/"
 
   echo "Ccache uploaded successfully."
 }
 
 # Function to monitor time and upload ccache before Cirrus CI timeout
 monitor_time() {
+  local start_time=$(date +%s)
+
   while true; do
-    ELAPSED=${CIRRUS_DURATION:-0}
-    if (( ELAPSED >= SAFE_TIME )); then
+    local current_time=$(date +%s)
+    local elapsed=$((current_time - start_time))
+
+    echo "$(date): Monitor Timer Running. Elapsed: ${elapsed}s / Timeout: ${SAFE_TIME}s" >> monitor.log
+
+    if (( elapsed >= SAFE_TIME )); then
       echo "Timeout approaching! Saving ccache..."
       upload_ccache
       exit 0
@@ -61,7 +73,7 @@ monitor_time() {
 # Function to build the project
 build() {
   source build/envsetup.sh || . build/envsetup.sh
-  lunch $MAKEFILENAME-$VARIENT
+  lunch $MAKEFILENAME-$VARIANT
   $EXTRACMD
   $TARGET -j$(nproc --all)
 }
@@ -76,7 +88,7 @@ download_ccache
 build
 
 # Kill the timer if build finishes early
-kill $TIMER_PID 2>/dev/null
+kill $TIMER_PID 2>/dev/null || true
 
 # Final ccache save
 upload_ccache
