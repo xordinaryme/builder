@@ -10,6 +10,7 @@ SAFE_TIME=6000  # Upload ccache 1 hour 40 min into the build
 
 MAKEFILENAME="lineage_topaz"
 VARIANT="userdebug"
+TARGET="mka bacon"
 
 # Function to set up ccache
 setup_ccache() {
@@ -55,21 +56,28 @@ upload_ccache() {
 }
 
 # Function to monitor time and upload ccache before Cirrus CI timeout
-monitor_time() {
+monitor_time_with_logs() {
   local start_time=$(date +%s)
+  local log_file="$1"
 
   while true; do
     local current_time=$(date +%s)
     local elapsed=$((current_time - start_time))
+    local remaining=$((SAFE_TIME - elapsed))
 
-    echo "$(date): Monitor Timer Running. Elapsed: ${elapsed}s / Timeout: ${SAFE_TIME}s" >> monitor.log
-
-    if (( elapsed >= SAFE_TIME )); then
+    if (( remaining <= 0 )); then
       echo "Timeout approaching! Saving ccache..."
       upload_ccache
       exit 0
     fi
-    sleep 60
+
+    # Display countdown timer and latest build logs
+    echo -ne "\r$(date): Timer Running. Elapsed: ${elapsed}s / Timeout: ${SAFE_TIME}s | Remaining: ${remaining}s"
+    echo -e "\n--- Latest Build Logs ---"
+    tail -n 10 "$log_file"  # Show the last 10 lines of the build log
+    echo -e "-------------------------"
+
+    sleep 1
   done
 }
 
@@ -78,11 +86,13 @@ build() {
   source build/envsetup.sh || . build/envsetup.sh
   lunch $MAKEFILENAME-$VARIANT
   $EXTRACMD
-  $TARGET -j$(nproc --all)
+  $TARGET -j$(nproc --all) >> build.log 2>&1  # Redirect build output to a log file
 }
 
-# Start background timer
-monitor_time &  
+# Start background timer with log monitoring
+build_log="build.log"
+: > "$build_log"  # Clear the log file before starting
+monitor_time_with_logs "$build_log" &  
 TIMER_PID=$!
 
 # Start build
