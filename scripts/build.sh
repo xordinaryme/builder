@@ -50,7 +50,11 @@ download_ccache() {
   # Extract the ccache archive
   mkdir -p ~/.ccache_tmp
   tar -xzf ccache-latest.tar.gz -C ~/.ccache_tmp
-  mv ~/.ccache_tmp/* ~/.ccache
+
+  # Merge the extracted ccache into the existing ccache directory
+  rsync -a --delete ~/.ccache_tmp/ ~/.ccache/
+
+  # Clean up temporary files
   rm -rf ~/.ccache_tmp ccache-latest.tar.gz
 
   echo "Ccache downloaded and extracted successfully."
