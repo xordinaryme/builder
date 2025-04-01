@@ -11,6 +11,7 @@ SAFE_TIME=6600  # 1 hour and 50 minutes
 
 MAKEFILENAME="lineage_topaz"
 VARIANT="userdebug"
+EXTRACMD="make clean"
 TARGET="mka bacon"
 
 # Function to set up ccache
