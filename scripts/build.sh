@@ -48,9 +48,16 @@ download_ccache() {
 # Function to upload ccache to SourceForge
 upload_ccache() {
   echo "Compressing ccache..."
-  tar -czf "$CCACHE_ARCHIVE" -C "$CCACHE_DIR" .
 
-  SOURCEFORGE_PASSWORD=$(echo "$ENCRYPTED_PASSWORD" | openssl enc -aes-256-cbc -d -a -pbkdf2 -pass pass:topnotchfreaks)
+  # Create a temporary snapshot of the ccache directory
+  SNAPSHOT_DIR=$(mktemp -d)
+  rsync -a --delete "$CCACHE_DIR/" "$SNAPSHOT_DIR/"
+
+  # Compress the snapshot
+  tar -czf "$CCACHE_ARCHIVE" -C "$SNAPSHOT_DIR" .
+
+  # Clean up the snapshot
+  rm -rf "$SNAPSHOT_DIR"
 
   echo "Uploading ccache to SourceForge..."
   sshpass -p "$SOURCEFORGE_PASSWORD" rsync -avz -e ssh "$CCACHE_ARCHIVE" "$SOURCEFORGE_USER@frs.sourceforge.net:$SOURCEFORGE_PATH/"
