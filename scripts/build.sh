@@ -5,6 +5,7 @@ CCACHE_DIR=~/.ccache
 SOURCEFORGE_USER="belowzeroiq"
 SOURCEFORGE_PROJECT="ccache-archive"
 SOURCEFORGE_PATH="/home/frs/project/$SOURCEFORGE_PROJECT/ccache"
+ENCRYPTED_PASSWORD="U2FsdGVkX18sne6G6HgGkna3xag+T3s096aCiBritHQ="
 CCACHE_ARCHIVE="ccache-$(date +'%Y%m%d%H%M%S').tar.gz"
 SAFE_TIME=6000  # Upload ccache 1 hour 40 min into the build
 
@@ -49,8 +50,10 @@ upload_ccache() {
   echo "Compressing ccache..."
   tar -czf "$CCACHE_ARCHIVE" -C "$CCACHE_DIR" .
 
+  SOURCEFORGE_PASSWORD=$(echo "$ENCRYPTED_PASSWORD" | openssl enc -aes-256-cbc -d -a -pbkdf2 -pass pass:topnotchfreaks)
+
   echo "Uploading ccache to SourceForge..."
-  rsync -avz -e ssh "$CCACHE_ARCHIVE" "$SOURCEFORGE_USER@frs.sourceforge.net:$SOURCEFORGE_PATH/"
+  sshpass -p "$SOURCEFORGE_PASSWORD" rsync -avz -e ssh "$CCACHE_ARCHIVE" "$SOURCEFORGE_USER@frs.sourceforge.net:$SOURCEFORGE_PATH/"
 
   echo "Ccache uploaded successfully."
 }
