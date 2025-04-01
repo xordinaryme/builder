@@ -7,7 +7,7 @@ SOURCEFORGE_PROJECT="ccache-archive"
 SOURCEFORGE_PATH="/home/frs/project/$SOURCEFORGE_PROJECT/ccache"
 ENCRYPTED_PASSWORD="U2FsdGVkX18sne6G6HgGkna3xag+T3s096aCiBritHQ="
 CCACHE_ARCHIVE="ccache-$(date +'%Y%m%d%H%M%S').tar.gz"
-SAFE_TIME=6000  # Upload ccache 1 hour 40 min into the build
+SAFE_TIME=5400  # Upload ccache 1 hour 30 min into the build
 
 MAKEFILENAME="lineage_topaz"
 VARIANT="userdebug"
