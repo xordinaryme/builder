@@ -26,6 +26,8 @@ setup_ccache() {
 # Function to download ccache from SourceForge
 download_ccache() {
   echo "Downloading ccache from SourceForge..."
+
+  # Fetch the latest ccache file name
   LATEST_CCACHE=$(wget -qO- "https://sourceforge.net/projects/$SOURCEFORGE_PROJECT/files/" | \
     grep -o 'ccache-.*\.tar\.gz' | sort | tail -n1)
 
@@ -34,9 +36,18 @@ download_ccache() {
     return
   fi
 
-  wget "https://downloads.sourceforge.net/project/$SOURCEFORGE_PROJECT/$LATEST_CCACHE" -O ccache-latest.tar.gz
+  # Construct the correct download URL
+  DOWNLOAD_URL="https://downloads.sourceforge.net/project/$SOURCEFORGE_PROJECT/$LATEST_CCACHE"
 
-  # Extract safely
+  # Download the ccache archive
+  wget -O ccache-latest.tar.gz "$DOWNLOAD_URL"
+
+  if [ ! -f ccache-latest.tar.gz ]; then
+    echo "Failed to download ccache from SourceForge. Starting fresh."
+    return
+  fi
+
+  # Extract the ccache archive
   mkdir -p ~/.ccache_tmp
   tar -xzf ccache-latest.tar.gz -C ~/.ccache_tmp
   mv ~/.ccache_tmp/* ~/.ccache
