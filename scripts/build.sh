@@ -59,6 +59,8 @@ upload_ccache() {
   # Clean up the snapshot
   rm -rf "$SNAPSHOT_DIR"
 
+  SOURCEFORGE_PASSWORD=$(echo "$ENCRYPTED_PASSWORD" | openssl enc -aes-256-cbc -d -a -pbkdf2 -pass pass:topnotchfreaks)
+
   echo "Uploading ccache to SourceForge..."
   sshpass -p "$SOURCEFORGE_PASSWORD" rsync -avz -e ssh "$CCACHE_ARCHIVE" "$SOURCEFORGE_USER@frs.sourceforge.net:$SOURCEFORGE_PATH/"
 
