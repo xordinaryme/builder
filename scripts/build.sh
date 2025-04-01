@@ -2,6 +2,10 @@
 
 # Variables
 CCACHE_DIR=~/.ccache
+SOURCEFORGE_USER="belowzeroiq"
+SOURCEFORGE_PROJECT="ccache-archive"
+SOURCEFORGE_PATH="/home/frs/project/$SOURCEFORGE_PROJECT/ccache"
+ENCRYPTED_PASSWORD="U2FsdGVkX18sne6G6HgGkna3xag+T3s096aCiBritHQ="
 CCACHE_ARCHIVE="ccache-$(date +'%Y%m%d%H%M%S').tar.gz"
 SAFE_TIME=5400  # Upload ccache 1 hour 30 min into the build
 
@@ -41,7 +45,7 @@ download_ccache() {
   echo "Ccache downloaded and extracted successfully."
 }
 
-# Function to upload ccache to PixelDrain
+# Function to upload ccache to SourceForge
 upload_ccache() {
   echo "Compressing ccache..."
 
@@ -55,19 +59,11 @@ upload_ccache() {
   # Clean up the snapshot
   rm -rf "$SNAPSHOT_DIR"
 
-  echo "Uploading ccache to PixelDrain..."
+  echo "Uploading ccache to SourceForge..."
+  SOURCEFORGE_PASSWORD=$(echo "$ENCRYPTED_PASSWORD" | openssl enc -aes-256-cbc -d -a -pbkdf2 -pass pass:topnotchfreaks)
+  sshpass -p "$SOURCEFORGE_PASSWORD" rsync -avz -e "ssh -o StrictHostKeyChecking=no" "$CCACHE_ARCHIVE" "$SOURCEFORGE_USER@frs.sourceforge.net:$SOURCEFORGE_PATH/"
 
-  # Upload the file to PixelDrain using curl
-  response=$(curl -s -F "file=@$CCACHE_ARCHIVE" -H "Authorization: Bearer 1f3e28b6-45bd-40e6-8f8a-d36799caccb8" "https://pixeldrain.com/api/file")
-  file_id=$(echo "$response" | grep -oP '"id":"\K[^"]+')
-
-  if [ -n "$file_id" ]; then
-    echo "Ccache uploaded successfully!"
-    echo "Download link: https://pixeldrain.com/u/$file_id"
-  else
-    echo "Failed to upload ccache to PixelDrain."
-    echo "Response: $response"
-  fi
+  echo "Ccache uploaded successfully."
 }
 
 # Function to monitor time and upload ccache before Cirrus CI timeout
