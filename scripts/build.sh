@@ -29,7 +29,7 @@ download_ccache() {
 
   # Fetch the latest ccache file name
   LATEST_CCACHE=$(wget -qO- "https://sourceforge.net/projects/$SOURCEFORGE_PROJECT/files/" | \
-    grep -o 'ccache-.*\.tar\.gz' | sort | tail -n1)
+    grep -oP 'ccache-[0-9]+\.tar\.gz' | sort | tail -n1)
 
   if [ -z "$LATEST_CCACHE" ]; then
     echo "No ccache archive found on SourceForge. Starting fresh."
