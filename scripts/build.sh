@@ -47,9 +47,9 @@ download_ccache() {
     return
   fi
 
-  # Extract the ccache archive
+  # Extract the ccache archive using pigz for faster decompression
   mkdir -p ~/.ccache_tmp
-  tar -xzf ccache-latest.tar.gz -C ~/.ccache_tmp
+  tar --use-compress-program=pigz -xvf ccache-latest.tar.gz -C ~/.ccache_tmp
 
   # Merge the extracted ccache into the existing ccache directory
   rsync -a --delete ~/.ccache_tmp/ ~/.ccache/
