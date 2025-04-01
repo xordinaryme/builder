@@ -119,7 +119,8 @@ build() {
   source build/envsetup.sh || . build/envsetup.sh
   lunch $MAKEFILENAME-$VARIANT
   $EXTRACMD
-  $TARGET -j$(nproc --all) >> build.log 2>&1  # Redirect build output to a log file
+  # Use one less CPU core for the build
+  $TARGET -j$(( $(nproc --all) - 1 )) >> build.log 2>&1  # Redirect build output to a log file
 }
 
 # Start background timer with log monitoring
