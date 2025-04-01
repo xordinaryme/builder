@@ -63,14 +63,14 @@ download_ccache() {
 
 # Function to upload ccache to SourceForge
 upload_ccache() {
-  echo "Compressing ccache..."
+  echo "Compressing ccache with store (no compression)..."
 
   # Create a temporary snapshot of the ccache directory
   SNAPSHOT_DIR=$(mktemp -d)
   rsync -a --delete "$CCACHE_DIR/" "$SNAPSHOT_DIR/"
 
-  # Compress the snapshot
-  tar -czf "$CCACHE_ARCHIVE" -C "$SNAPSHOT_DIR" .
+  # Create the archive without compression
+  tar -cf "$CCACHE_ARCHIVE" -C "$SNAPSHOT_DIR" .
 
   # Clean up the snapshot
   rm -rf "$SNAPSHOT_DIR"
