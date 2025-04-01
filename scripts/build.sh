@@ -101,13 +101,13 @@ monitor_time_with_logs() {
     fi
 
     # Display logs every 5 minutes
-    if (( since_last_display >= display_interval )); then
-      echo -ne "\r$(date): Timer Running. Elapsed: ${elapsed}s / Timeout: ${SAFE_TIME}s | Remaining: ${remaining}s"
-      echo -e "\n--- Latest Build Logs ---"
-      tail -n 10 "$log_file"  # Show the last 10 lines of the build log
-      echo -e "-------------------------"
-      last_display_time=$current_time  # Update the last display time
-    fi
+    #if (( since_last_display >= display_interval )); then
+    #  echo -ne "\r$(date): Timer Running. Elapsed: ${elapsed}s / Timeout: ${SAFE_TIME}s | Remaining: ${remaining}s"
+    # echo -e "\n--- Latest Build Logs ---"
+    #  tail -n 10 "$log_file"  # Show the last 10 lines of the build log
+    #  echo -e "-------------------------"
+    #  last_display_time=$current_time  # Update the last display time
+    #fi
 
     sleep 1
   done
