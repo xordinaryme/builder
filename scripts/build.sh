@@ -69,11 +69,14 @@ upload_ccache() {
 monitor_time_with_logs() {
   local start_time=$(date +%s)
   local log_file="$1"
+  local last_display_time=$start_time  # Track the last time logs were displayed
+  local display_interval=300          # Set the interval to 5 minutes (300 seconds)
 
   while true; do
     local current_time=$(date +%s)
     local elapsed=$((current_time - start_time))
     local remaining=$((SAFE_TIME - elapsed))
+    local since_last_display=$((current_time - last_display_time))
 
     if (( remaining <= 0 )); then
       echo "Timeout approaching! Saving ccache..."
@@ -81,11 +84,14 @@ monitor_time_with_logs() {
       exit 0
     fi
 
-    # Display countdown timer and latest build logs
-    echo -ne "\r$(date): Timer Running. Elapsed: ${elapsed}s / Timeout: ${SAFE_TIME}s | Remaining: ${remaining}s"
-    echo -e "\n--- Latest Build Logs ---"
-    tail -n 10 "$log_file"  # Show the last 10 lines of the build log
-    echo -e "-------------------------"
+    # Display logs every 5 minutes
+    if (( since_last_display >= display_interval )); then
+      echo -ne "\r$(date): Timer Running. Elapsed: ${elapsed}s / Timeout: ${SAFE_TIME}s | Remaining: ${remaining}s"
+      echo -e "\n--- Latest Build Logs ---"
+      tail -n 10 "$log_file"  # Show the last 10 lines of the build log
+      echo -e "-------------------------"
+      last_display_time=$current_time  # Update the last display time
+    fi
 
     sleep 1
   done
