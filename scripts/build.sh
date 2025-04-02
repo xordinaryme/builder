@@ -11,7 +11,7 @@ DEVICE_CODENAME="topaz"
 TARGET_FILES="out/target/product/$DEVICE_CODENAME/ota_target_files.zip"
 OTA_ZIP="out/target/product/$DEVICE_CODENAME/lineage_${MAKEFILENAME}_${VARIANT}.zip"
 
-# Function to check and download partition images from SourceForge
+# Function to check and download partition images from SourceForge with specific mirrors and fallback to available mirrors
 download_partition() {
   local partition="$1"
   local filename="${partition}.img"
@@ -20,17 +20,61 @@ download_partition() {
   # Ensure the target directory exists
   mkdir -p "$image_dir"
 
-  echo "Checking for existing $filename on SourceForge..."
+  echo "Checking for existing $filename..."
 
-  LATEST_IMG=$(wget -qO- "https://sourceforge.net/projects/$SOURCEFORGE_PROJECT/files/" | \
-    grep -oP "${partition}\.img" | sort | tail -n1)
+  # List of specific mirrors (use the mirror name in the query string)
+  local specific_mirrors=(
+    "onboardcloud"
+  )
 
-  if [ -n "$LATEST_IMG" ]; then
-    echo "$filename found. Downloading..."
-    DOWNLOAD_URL="https://downloads.sourceforge.net/project/$SOURCEFORGE_PROJECT/$filename"
-    wget -O "$image_dir/$filename" "$DOWNLOAD_URL"
-  else
-    echo "$filename not found. It will be built."
+  # List of available mirrors (default SourceForge mirrors if specific ones aren't found)
+  local available_mirrors=(
+    "https://sourceforge.net/projects/$SOURCEFORGE_PROJECT/files/"
+  )
+
+  # Try downloading from each specific mirror first
+  local download_url=""
+  for mirror in "${specific_mirrors[@]}"; do
+    echo "Trying specific mirror: $mirror"
+
+    # Construct the URL with the use_mirror query parameter
+    download_url="https://sourceforge.net/projects/$SOURCEFORGE_PROJECT/files/${partition}.img/download?use_mirror=$mirror"
+
+    # Check if the partition image exists on the mirror
+    if wget --spider -q "$download_url"; then
+      echo "$filename found on $mirror. Downloading..."
+      wget -O "$image_dir/$filename" "$download_url"
+      break
+    else
+      echo "$filename not found on $mirror."
+    fi
+  done
+
+  # If the file isn't found on any specific mirror, try the available mirrors
+  if [ ! -f "$image_dir/$filename" ]; then
+    echo "$filename not found on any specific mirror. Trying available mirrors..."
+
+    # Try downloading from the available mirrors (SourceForge default)
+    for mirror in "${available_mirrors[@]}"; do
+      echo "Trying available mirror: $mirror"
+
+      # Construct the default SourceForge download URL
+      download_url="${mirror}${partition}.img/download"
+
+      # Check if the partition image exists on the mirror
+      if wget --spider -q "$download_url"; then
+        echo "$filename found on available mirror. Downloading..."
+        wget -O "$image_dir/$filename" "$download_url"
+        break
+      else
+        echo "$filename not found on $mirror."
+      fi
+    done
+  fi
+
+  # If no mirror worked, fall back to building the image
+  if [ ! -f "$image_dir/$filename" ]; then
+    echo "$filename not found on any mirror. It will be built."
   fi
 }
 
