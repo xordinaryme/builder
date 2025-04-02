@@ -48,9 +48,9 @@ download_ccache() {
     return
   fi
 
-  # Extract the ccache archive using pigz for faster decompression
+  # Extract the ccache archive using zstd
   mkdir -p ~/.ccache_tmp
-  tar --use-compress-program=pigz -xvf ccache-latest.tar.gz -C ~/.ccache_tmp
+  tar -I zstd -xvf ccache-latest.tar.zst -C ~/.ccache_tmp
 
   # Merge the extracted ccache into the existing ccache directory
   rsync -a --delete ~/.ccache_tmp/ ~/.ccache/
@@ -69,8 +69,8 @@ upload_ccache() {
   SNAPSHOT_DIR=$(mktemp -d)
   rsync -a --delete "$CCACHE_DIR/" "$SNAPSHOT_DIR/"
 
-  # Create the archive without compression
-  tar -cf "$CCACHE_ARCHIVE" -C "$SNAPSHOT_DIR" .
+  # Compress the snapshot with zstd
+  tar -I zstd -cf "$CCACHE_ARCHIVE.zst" -C "$SNAPSHOT_DIR" .
 
   # Clean up the snapshot
   rm -rf "$SNAPSHOT_DIR"
