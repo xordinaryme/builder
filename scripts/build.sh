@@ -13,6 +13,8 @@ ROM_ZIP="lineage_${MAKEFILENAME}_${VARIANT}.zip"
 download_partition() {
   local partition="$1"
   local filename="${partition}.img"
+  local image_dir="out/target/product/topaz"
+
   echo "Checking for existing $filename on SourceForge..."
 
   LATEST_IMG=$(wget -qO- "https://sourceforge.net/projects/$SOURCEFORGE_PROJECT/files/" | \
@@ -21,7 +23,7 @@ download_partition() {
   if [ -n "$LATEST_IMG" ]; then
     echo "$filename found. Downloading..."
     DOWNLOAD_URL="https://downloads.sourceforge.net/project/$SOURCEFORGE_PROJECT/$filename"
-    wget -O "$filename" "$DOWNLOAD_URL"
+    wget -O "$image_dir/$filename" "$DOWNLOAD_URL"
   else
     echo "$filename not found. It will be built."
   fi
@@ -31,17 +33,18 @@ download_partition() {
 upload_partition() {
   local partition="$1"
   local filename="${partition}.img"
+  local image_dir="out/target/product/topaz"
 
-  if [ -f "$filename" ]; then
+  if [ -f "$image_dir/$filename" ]; then
     echo "Uploading $filename to SourceForge..."
     if [ -z "$SOURCEFORGE_PASSWORD" ]; then
       echo "Error: SOURCEFORGE_PASSWORD environment variable is not set."
       exit 1
     fi
-    sshpass -p "$SOURCEFORGE_PASSWORD" rsync -avz -e "ssh -o StrictHostKeyChecking=no" "$filename" "$SOURCEFORGE_USER@frs.sourceforge.net:$SOURCEFORGE_PATH/"
+    sshpass -p "$SOURCEFORGE_PASSWORD" rsync -avz -e "ssh -o StrictHostKeyChecking=no" "$image_dir/$filename" "$SOURCEFORGE_USER@frs.sourceforge.net:$SOURCEFORGE_PATH/"
     echo "$filename uploaded successfully."
   else
-    echo "Skipping upload. $filename not found."
+    echo "Skipping upload. $filename not found in $image_dir."
   fi
 }
 
