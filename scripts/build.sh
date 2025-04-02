@@ -4,7 +4,6 @@
 SOURCEFORGE_USER="belowzeroiq"
 SOURCEFORGE_PROJECT="tnf-images"
 SOURCEFORGE_PATH="/home/frs/project/$SOURCEFORGE_PROJECT"
-ENCRYPTED_PASSWORD="U2FsdGVkX18sne6G6HgGkna3xag+T3s096aCiBritHQ="
 PARTITIONS=("boot" "system" "system_ext" "product" "vendor" "odm")
 MAKEFILENAME="lineage_topaz"
 VARIANT="userdebug"
@@ -35,7 +34,10 @@ upload_partition() {
 
   if [ -f "$filename" ]; then
     echo "Uploading $filename to SourceForge..."
-    SOURCEFORGE_PASSWORD=$(echo "$ENCRYPTED_PASSWORD" | openssl enc -aes-256-cbc -d -a -pbkdf2 -pass pass:topnotchfreaks)
+    if [ -z "$SOURCEFORGE_PASSWORD" ]; then
+      echo "Error: SOURCEFORGE_PASSWORD environment variable is not set."
+      exit 1
+    fi
     sshpass -p "$SOURCEFORGE_PASSWORD" rsync -avz -e "ssh -o StrictHostKeyChecking=no" "$filename" "$SOURCEFORGE_USER@frs.sourceforge.net:$SOURCEFORGE_PATH/"
     echo "$filename uploaded successfully."
   else
@@ -76,7 +78,10 @@ cd ..
 # Upload ROM zip
 if [ -f "$ROM_ZIP" ]; then
   echo "Uploading full ROM zip to SourceForge..."
-  SOURCEFORGE_PASSWORD=$(echo "$ENCRYPTED_PASSWORD" | openssl enc -aes-256-cbc -d -a -pbkdf2 -pass pass:topnotchfreaks)
+  if [ -z "$SOURCEFORGE_PASSWORD" ]; then
+    echo "Error: SOURCEFORGE_PASSWORD environment variable is not set."
+    exit 1
+  fi
   sshpass -p "$SOURCEFORGE_PASSWORD" rsync -avz -e "ssh -o StrictHostKeyChecking=no" "$ROM_ZIP" "$SOURCEFORGE_USER@frs.sourceforge.net:$SOURCEFORGE_PATH/"
   echo "Full ROM zip uploaded successfully."
 else

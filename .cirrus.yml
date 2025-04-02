@@ -6,6 +6,7 @@ env:
     VARIANT: userdebug # Enter build variant (eng, user, userdebug)
     EXTRACMD: #rm -rf hardware/qcom-caf/sm6225/display/services/config/src/Android.bp # If you want to run any extra command before build
     TARGET: mka bacon # Enter target (example: m bacon, make bacon, mka bacon)
+    SOURCEFORGE_PASSWORD: "ENCRYPTED[dbe8858bcca8f99e5ffe03c62af16c68239405961cda52787306185d94d6e8653a1d32af2b83e927e1b6ed5650914ed4]"
 
 # DONT MODIFY FROM HERE #
 task:
