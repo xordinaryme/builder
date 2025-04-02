@@ -6,7 +6,7 @@ SOURCEFORGE_USER="belowzeroiq"
 SOURCEFORGE_PROJECT="ccache-archive"
 SOURCEFORGE_PATH="/home/frs/project/$SOURCEFORGE_PROJECT"
 ENCRYPTED_PASSWORD="U2FsdGVkX18sne6G6HgGkna3xag+T3s096aCiBritHQ="
-CCACHE_ARCHIVE="ccache-$(date +'%Y%m%d%H%M%S').tar.gz"
+CCACHE_ARCHIVE="ccache-$(date +'%Y%m%d%H%M%S').tar.zst"
 SAFE_TIME=5800  # 1 hour and 36 minutes in seconds
 
 MAKEFILENAME="lineage_topaz"
@@ -41,9 +41,9 @@ download_ccache() {
   DOWNLOAD_URL="https://downloads.sourceforge.net/project/$SOURCEFORGE_PROJECT/$LATEST_CCACHE"
 
   # Download the ccache archive
-  wget -O ccache-latest.tar.gz "$DOWNLOAD_URL"
+  wget -O ccache-latest.tar.zst "$DOWNLOAD_URL"
 
-  if [ ! -f ccache-latest.tar.gz ]; then
+  if [ ! -f ccache-latest.tar.zst ]; then
     echo "Failed to download ccache from SourceForge. Starting fresh."
     return
   fi
@@ -56,7 +56,7 @@ download_ccache() {
   rsync -a --delete ~/.ccache_tmp/ ~/.ccache/
 
   # Clean up temporary files
-  rm -rf ~/.ccache_tmp ccache-latest.tar.gz
+  rm -rf ~/.ccache_tmp ccache-latest.tar.zst
 
   echo "Ccache downloaded and extracted successfully."
 }
