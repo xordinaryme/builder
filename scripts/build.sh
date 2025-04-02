@@ -17,6 +17,9 @@ download_partition() {
   local filename="${partition}.img"
   local image_dir="out/target/product/$DEVICE_CODENAME"
 
+  # Ensure the target directory exists
+  mkdir -p "$image_dir"
+
   echo "Checking for existing $filename on SourceForge..."
 
   LATEST_IMG=$(wget -qO- "https://sourceforge.net/projects/$SOURCEFORGE_PROJECT/files/" | \
