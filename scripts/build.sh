@@ -7,13 +7,15 @@ SOURCEFORGE_PATH="/home/frs/project/$SOURCEFORGE_PROJECT"
 PARTITIONS=("boot" "system" "system_ext" "product" "vendor" "odm")
 MAKEFILENAME="lineage_topaz"
 VARIANT="userdebug"
-ROM_ZIP="lineage_${MAKEFILENAME}_${VARIANT}.zip"
+DEVICE_CODENAME="topaz"
+TARGET_FILES="out/target/product/$DEVICE_CODENAME/ota_target_files.zip"
+OTA_ZIP="out/target/product/$DEVICE_CODENAME/lineage_${MAKEFILENAME}_${VARIANT}.zip"
 
 # Function to check and download partition images from SourceForge
 download_partition() {
   local partition="$1"
   local filename="${partition}.img"
-  local image_dir="out/target/product/topaz"
+  local image_dir="out/target/product/$DEVICE_CODENAME"
 
   echo "Checking for existing $filename on SourceForge..."
 
@@ -29,22 +31,21 @@ download_partition() {
   fi
 }
 
-# Function to upload partition images to SourceForge
-upload_partition() {
-  local partition="$1"
-  local filename="${partition}.img"
-  local image_dir="out/target/product/topaz"
+# Function to upload files to SourceForge
+upload_file() {
+  local file_path="$1"
+  local file_name=$(basename "$file_path")
 
-  if [ -f "$image_dir/$filename" ]; then
-    echo "Uploading $filename to SourceForge..."
+  if [ -f "$file_path" ]; then
+    echo "Uploading $file_name to SourceForge..."
     if [ -z "$SOURCEFORGE_PASSWORD" ]; then
       echo "Error: SOURCEFORGE_PASSWORD environment variable is not set."
       exit 1
     fi
-    sshpass -p "$SOURCEFORGE_PASSWORD" rsync -avz -e "ssh -o StrictHostKeyChecking=no" "$image_dir/$filename" "$SOURCEFORGE_USER@frs.sourceforge.net:$SOURCEFORGE_PATH/"
-    echo "$filename uploaded successfully."
+    sshpass -p "$SOURCEFORGE_PASSWORD" rsync -avz -e "ssh -o StrictHostKeyChecking=no" "$file_path" "$SOURCEFORGE_USER@frs.sourceforge.net:$SOURCEFORGE_PATH/"
+    echo "$file_name uploaded successfully."
   else
-    echo "Skipping upload. $filename not found in $image_dir."
+    echo "Skipping upload. $file_name not found."
   fi
 }
 
@@ -54,41 +55,45 @@ build_partition() {
   echo "Building $partition image..."
   source build/envsetup.sh || . build/envsetup.sh
   lunch $MAKEFILENAME-$VARIANT
-  m "$partition"image -j$(nproc --all)
-  upload_partition "$partition"  # Upload immediately after building
+  m "$partition"image -j$(( $(nproc --all) - 1 ))
+  upload_file "out/target/product/$DEVICE_CODENAME/${partition}.img"  # Upload immediately after building
+}
+
+# Function to generate `payload.bin` and OTA ZIP
+generate_ota_zip() {
+  echo "Generating OTA ZIP with payload.bin..."
+
+  # Build the target-files package first
+  source build/envsetup.sh
+  lunch $MAKEFILENAME-$VARIANT
+  m dist
+
+  # Check if the target-files package was generated
+  if [ ! -f "$TARGET_FILES" ]; then
+    echo "Error: Target files package ($TARGET_FILES) not found."
+    exit 1
+  fi
+
+  # Use `ota_from_target_files` to create the OTA ZIP (with payload.bin)
+  ./build/tools/releasetools/ota_from_target_files -v \
+    -p out/host/linux-x86 \
+    --block \
+    --full \
+    "$TARGET_FILES" "$OTA_ZIP"
+
+  # Upload the OTA ZIP after generation
+  upload_file "$OTA_ZIP"
 }
 
 # Main execution
 for partition in "${PARTITIONS[@]}"; do
   download_partition "$partition"
-  if [ ! -f "${partition}.img" ]; then
+  if [ ! -f "out/target/product/$DEVICE_CODENAME/${partition}.img" ]; then
     build_partition "$partition"
   fi
 done
 
-echo "All partitions processed. Creating full ROM zip..."
-
-# Create full ROM zip from downloaded/generated images
-mkdir -p rom_output
-for partition in "${PARTITIONS[@]}"; do
-  mv "${partition}.img" rom_output/
-done
-
-cd rom_output || exit 1
-zip -r "../$ROM_ZIP" .
-cd ..
-
-# Upload ROM zip
-if [ -f "$ROM_ZIP" ]; then
-  echo "Uploading full ROM zip to SourceForge..."
-  if [ -z "$SOURCEFORGE_PASSWORD" ]; then
-    echo "Error: SOURCEFORGE_PASSWORD environment variable is not set."
-    exit 1
-  fi
-  sshpass -p "$SOURCEFORGE_PASSWORD" rsync -avz -e "ssh -o StrictHostKeyChecking=no" "$ROM_ZIP" "$SOURCEFORGE_USER@frs.sourceforge.net:$SOURCEFORGE_PATH/"
-  echo "Full ROM zip uploaded successfully."
-else
-  echo "Full ROM zip creation failed."
-fi
+echo "All partitions processed. Generating OTA ZIP..."
+generate_ota_zip
 
 echo "ROM build process completed."
