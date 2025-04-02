@@ -114,7 +114,7 @@ build_partition() {
     echo "Building $partition image..."
     source build/envsetup.sh || . build/envsetup.sh
     lunch $MAKEFILENAME-$VARIANT
-    m "$partition"image -j$(nproc --all)
+    m "$partition"image -j$(( $(nproc --all) - 1 ))
     upload_file "out/target/product/$DEVICE_CODENAME/${partition}.img"  # Upload immediately after building
 }
 
