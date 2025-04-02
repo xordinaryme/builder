@@ -1,5 +1,5 @@
 env:
-    DEVICE: topaz # Enter your device codename
+    DEVICE_CODENAME: topaz # Enter your device codename
     ROMREPO: https://github.com/LineageOS/android.git -b lineage-20.0 # Enter ROM repo link
     LOCALMANIFEST: https://github.com/belowzeroiq/local_manifest.git # Enter local_manifest link
     MAKEFILENAME: lineage_topaz # Enter makefile name (example: aosp_fleur)

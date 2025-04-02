@@ -5,9 +5,7 @@ SOURCEFORGE_USER="belowzeroiq"
 SOURCEFORGE_PROJECT="tnf-images"
 SOURCEFORGE_PATH="/home/frs/project/$SOURCEFORGE_PROJECT"
 PARTITIONS=("boot" "system" "system_ext" "product" "vendor" "odm")
-MAKEFILENAME="lineage_topaz"
-VARIANT="userdebug"
-DEVICE_CODENAME="topaz"
+ROM_NAME="$MAKEFILENAME"  # Define the ROM name here (this will be used as a prefix)
 TARGET_FILES="out/target/product/$DEVICE_CODENAME/ota_target_files.zip"
 OTA_ZIP="out/target/product/$DEVICE_CODENAME/lineage_${MAKEFILENAME}_${VARIANT}.zip"
 
@@ -16,6 +14,7 @@ download_partition() {
   local partition="$1"
   local filename="${partition}.img"
   local image_dir="out/target/product/$DEVICE_CODENAME"
+  local rom_filename="${ROM_NAME}_${filename}"  # Add ROM name as prefix to the filename
 
   # Ensure the target directory exists
   mkdir -p "$image_dir"
@@ -43,7 +42,7 @@ download_partition() {
     # Check if the partition image exists on the mirror
     if wget --spider -q "$download_url"; then
       echo "$filename found on $mirror. Downloading..."
-      wget -O "$image_dir/$filename" "$download_url"
+      wget -O "$image_dir/$rom_filename" "$download_url"
       break
     else
       echo "$filename not found on $mirror."
@@ -51,7 +50,7 @@ download_partition() {
   done
 
   # If the file isn't found on any specific mirror, try the available mirrors
-  if [ ! -f "$image_dir/$filename" ]; then
+  if [ ! -f "$image_dir/$rom_filename" ]; then
     echo "$filename not found on any specific mirror. Trying available mirrors..."
 
     # Try downloading from the available mirrors (SourceForge default)
@@ -64,7 +63,7 @@ download_partition() {
       # Check if the partition image exists on the mirror
       if wget --spider -q "$download_url"; then
         echo "$filename found on available mirror. Downloading..."
-        wget -O "$image_dir/$filename" "$download_url"
+        wget -O "$image_dir/$rom_filename" "$download_url"
         break
       else
         echo "$filename not found on $mirror."
@@ -73,12 +72,18 @@ download_partition() {
   fi
 
   # If no mirror worked, fall back to building the image
-  if [ ! -f "$image_dir/$filename" ]; then
+  if [ ! -f "$image_dir/$rom_filename" ]; then
     echo "$filename not found on any mirror. It will be built."
+  fi
+
+  # Rename the downloaded image to its default name (without ROM prefix)
+  if [ -f "$image_dir/$rom_filename" ]; then
+    echo "Renaming $rom_filename to $filename..."
+    mv "$image_dir/$rom_filename" "$image_dir/$filename"
   fi
 }
 
-# Function to upload files to SourceForge
+# Function to upload files to SourceForge with the ROM name in the filename
 upload_file() {
   local file_path="$1"
   local file_name=$(basename "$file_path")
@@ -96,7 +101,7 @@ upload_file() {
   fi
 }
 
-# Function to build a partition
+# Function to build a partition image if not found
 build_partition() {
   local partition="$1"
   echo "Building $partition image..."
