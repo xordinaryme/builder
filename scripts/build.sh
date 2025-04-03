@@ -59,22 +59,11 @@ check_timeout() {
     local remaining=$((TIMEOUT_SECONDS - elapsed))
     
     if [ $remaining -le 0 ]; then
-        echo "Timeout reached (1h 40m). Preparing to upload ccache..."
+        echo "Timeout reached (1h 35m). Preparing to upload ccache..."
         TIMEOUT_REACHED=1
         compress_and_upload_ccache
         show_status
         exit 0
-    fi
-    
-    # Check if we should upload ccache periodically
-    local time_since_last_check=$((current_time - LAST_CCACHE_CHECK))
-    if [ $time_since_last_check -ge $CCACHE_UPLOAD_INTERVAL ]; then
-        echo "Periodic ccache check (every ${CCACHE_UPLOAD_INTERVAL}s)..."
-        if [ $remaining -le $((TIMEOUT_SECONDS / 4)) ]; then
-            echo "Approaching timeout - preparing to upload ccache..."
-            compress_and_upload_ccache
-            LAST_CCACHE_CHECK=$current_time
-        fi
     fi
     
     return 0
