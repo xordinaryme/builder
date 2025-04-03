@@ -5,6 +5,7 @@ PARTITIONS=("boot" "system" "system_ext" "product" "vendor" "odm")
 ROM_NAME="$MAKEFILENAME"
 TARGET_FILES="out/target/product/$DEVICE_CODENAME/ota_target_files.zip"
 OTA_ZIP="out/target/product/$DEVICE_CODENAME/lineage_${MAKEFILENAME}_${VARIANT}.zip"
+LOG_FILE="build.log"
 
 # CCache settings
 CCACHE_DIR="${CCACHE_DIR:-$HOME/.ccache}"
@@ -13,9 +14,105 @@ CCACHE_TAR="ccache.tar.gz"
 CCACHE_UPLOAD_INTERVAL=$((30 * 60))  # 30 minutes
 
 # Timeout settings
-TIMEOUT_SECONDS=$((100 * 60))  # 1h40m
+TIMEOUT_SECONDS=5700  # 1 hour 35 minutes
 START_TIME=$(date +%s)
 LAST_CCACHE_CHECK=$START_TIME
+LAST_LOG_TIME=$START_TIME
+LOG_INTERVAL=$((5 * 60))  # 5 minutes
+TIMEOUT_REACHED=0
+
+# Function to show status information
+show_status() {
+    local current_time=$(date +%s)
+    local elapsed=$((current_time - START_TIME))
+    local remaining=$((TIMEOUT_SECONDS - elapsed))
+    
+    echo ""
+    echo "===== STATUS UPDATE [$(date '+%Y-%m-%d %H:%M:%S')] ====="
+    echo "Elapsed time: $(printf '%02d:%02d:%02d' $((elapsed/3600)) $(( (elapsed%3600)/60 )) $((elapsed%60)))"
+    echo "Remaining time: $(printf '%02d:%02d:%02d' $((remaining/3600)) $(( (remaining%3600)/60 )) $((remaining%60)))"
+    echo "Timeout: $(printf '%02d:%02d:%02d' $((TIMEOUT_SECONDS/3600)) $(( (TIMEOUT_SECONDS%3600)/60 )) $((TIMEOUT_SECONDS%60)))"
+    
+    echo ""
+    echo "--- Last 10 lines of build log ---"
+    tail -n 10 "$LOG_FILE" 2>/dev/null || echo "No build log available yet"
+    
+    echo ""
+    echo "--- CCache Statistics ---"
+    ccache -s
+    
+    echo "===== END OF STATUS ====="
+    echo ""
+}
+
+# Function to check remaining time and upload ccache if needed
+check_timeout() {
+    local current_time=$(date +%s)
+    
+    # Show status every LOG_INTERVAL seconds
+    if [ $((current_time - LAST_LOG_TIME)) -ge $LOG_INTERVAL ]; then
+        show_status
+        LAST_LOG_TIME=$current_time
+    fi
+    
+    local elapsed=$((current_time - START_TIME))
+    local remaining=$((TIMEOUT_SECONDS - elapsed))
+    
+    if [ $remaining -le 0 ]; then
+        echo "Timeout reached (1h 40m). Preparing to upload ccache..."
+        TIMEOUT_REACHED=1
+        compress_and_upload_ccache
+        show_status
+        exit 0
+    fi
+    
+    # Check if we should upload ccache periodically
+    local time_since_last_check=$((current_time - LAST_CCACHE_CHECK))
+    if [ $time_since_last_check -ge $CCACHE_UPLOAD_INTERVAL ]; then
+        echo "Periodic ccache check (every ${CCACHE_UPLOAD_INTERVAL}s)..."
+        if [ $remaining -le $((TIMEOUT_SECONDS / 4)) ]; then
+            echo "Approaching timeout - preparing to upload ccache..."
+            compress_and_upload_ccache
+            LAST_CCACHE_CHECK=$current_time
+        fi
+    fi
+    
+    return 0
+}
+
+# Function to run commands with timeout checking and logging
+run_with_timeout() {
+    local cmd="$@"
+    
+    while true; do
+        check_timeout
+        
+        if [ $TIMEOUT_REACHED -eq 1 ]; then
+            return 1
+        fi
+        
+        # Run the command with logging
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] Executing: $cmd" >> "$LOG_FILE"
+        $cmd >> "$LOG_FILE" 2>&1 &
+        local cmd_pid=$!
+        
+        # Monitor the command with timeout checks
+        while ps -p $cmd_pid > /dev/null; do
+            check_timeout
+            if [ $TIMEOUT_REACHED -eq 1 ]; then
+                kill $cmd_pid 2>/dev/null
+                wait $cmd_pid 2>/dev/null
+                return 1
+            fi
+            sleep 10
+        done
+        
+        wait $cmd_pid
+        local exit_status=$?
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] Command exited with status: $exit_status" >> "$LOG_FILE"
+        return $exit_status
+    done
+}
 
 # Function to check for and download ccache from PixelDrain
 download_ccache() {
@@ -47,30 +144,6 @@ download_ccache() {
     else
         echo "No ccache archive found on PixelDrain."
         return 1
-    fi
-}
-
-# Function to check remaining time and upload ccache if needed
-check_timeout() {
-    local current_time=$(date +%s)
-    local elapsed=$((current_time - START_TIME))
-    local remaining=$((TIMEOUT_SECONDS - elapsed))
-    
-    # Check if we should upload ccache
-    local time_since_last_check=$((current_time - LAST_CCACHE_CHECK))
-    if [ $time_since_last_check -ge $CCACHE_UPLOAD_INTERVAL ]; then
-        echo "Periodic ccache check (every ${CCACHE_UPLOAD_INTERVAL}s)..."
-        if [ $remaining -le $((TIMEOUT_SECONDS / 4)) ]; then
-            echo "Approaching timeout - preparing to upload ccache..."
-            compress_and_upload_ccache
-            LAST_CCACHE_CHECK=$current_time
-        fi
-    fi
-    
-    if [ $remaining -le 0 ]; then
-        echo "Timeout reached (1h 40m). Preparing to upload ccache..."
-        compress_and_upload_ccache
-        exit 0
     fi
 }
 
@@ -259,18 +332,29 @@ setup_ccache() {
 }
 
 # Main execution
-setup_ccache
-get_pixeldrain_file_ids
+{
+    echo "===== BUILD STARTED [$(date '+%Y-%m-%d %H:%M:%S')] ====="
+    echo "Timeout set to: $(printf '%02d:%02d:%02d' $((TIMEOUT_SECONDS/3600)) $(( (TIMEOUT_SECONDS%3600)/60 )) $((TIMEOUT_SECONDS%60)))"
+    
+    setup_ccache
+    get_pixeldrain_file_ids
 
-for partition in "${PARTITIONS[@]}"; do
-    download_partition "$partition"
-    if [ ! -f "out/target/product/$DEVICE_CODENAME/${partition}.img" ]; then
-        build_partition "$partition"
+    for partition in "${PARTITIONS[@]}"; do
+        run_with_timeout download_partition "$partition"
+        if [ ! -f "out/target/product/$DEVICE_CODENAME/${partition}.img" ]; then
+            run_with_timeout build_partition "$partition"
+        fi
+    done
+
+    if [ $TIMEOUT_REACHED -eq 0 ]; then
+        echo "All partitions processed. Generating OTA ZIP..."
+        run_with_timeout generate_ota_zip
+        echo "ROM build process completed."
+        ccache -s
     fi
-done
+    
+    echo "===== BUILD FINISHED [$(date '+%Y-%m-%d %H:%M:%S')] ====="
+} | tee -a "$LOG_FILE"
 
-echo "All partitions processed. Generating OTA ZIP..."
-generate_ota_zip
-
-echo "ROM build process completed."
-ccache -s
+# Final status report
+show_status
