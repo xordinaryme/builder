@@ -375,7 +375,37 @@ setup_ccache() {
     fi
 }
 
-# ===== Main Execution =====
+# Upload generated OTA to PixelDrain
+upload_ota_to_pixeldrain() {
+    check_timeout
+    
+    if [ ! -f "$OTA_ZIP" ]; then
+        echo "ERROR: OTA package not found at $OTA_ZIP" | tee -a "$LOG_FILE"
+        return 1
+    fi
+
+    echo "Uploading OTA package to PixelDrain..." | tee -a "$LOG_FILE"
+    
+    response=$(curl -s -X POST \
+        -H "Authorization: Basic $(echo -n ":$PIXELDRAIN_API_KEY" | base64)" \
+        -F "file=@$OTA_ZIP" \
+        "https://pixeldrain.com/api/file")
+    
+    file_id=$(echo "$response" | jq -r '.id')
+    
+    if [ -n "$file_id" ] && [ "$file_id" != "null" ]; then
+        echo "OTA uploaded successfully to PixelDrain." | tee -a "$LOG_FILE"
+        echo "File ID: $file_id" | tee -a "$LOG_FILE"
+        echo "Download URL: https://pixeldrain.com/u/$file_id" | tee -a "$LOG_FILE"
+        return 0
+    else
+        echo "Failed to upload OTA to PixelDrain." | tee -a "$LOG_FILE"
+        echo "Response: $response" | tee -a "$LOG_FILE"
+        return 1
+    fi
+}
+
+# Modified main function
 main() {
     echo "===== 64-bit Build Started =====" | tee -a "$LOG_FILE"
     echo "Device: $DEVICE" | tee -a "$LOG_FILE"
@@ -400,6 +430,13 @@ main() {
     
     # Generate OTA
     generate_ota
+    
+    # Upload OTA
+    if upload_ota_to_pixeldrain; then
+        echo "OTA successfully uploaded to PixelDrain" | tee -a "$LOG_FILE"
+    else
+        echo "Warning: OTA upload failed (build still succeeded)" | tee -a "$LOG_FILE"
+    fi
     
     echo "===== Build Completed Successfully =====" | tee -a "$LOG_FILE"
     echo "Final OTA: $OTA_ZIP" | tee -a "$LOG_FILE"
