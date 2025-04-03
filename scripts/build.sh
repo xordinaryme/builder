@@ -37,9 +37,8 @@ show_status() {
     echo "--- Last 10 lines of build log ---"
     tail -n 10 "$LOG_FILE" 2>/dev/null || echo "No build log available yet"
     
-    echo ""
-    echo "--- CCache Statistics ---"
-    ccache -s
+    echo -e "\n--- CCache Statistics ---"
+    ccache -s | grep -E 'Hits|Misses|Cache size' | sed 's/^/  /'
     
     echo "===== END OF STATUS ====="
     echo ""
