@@ -1,11 +1,22 @@
 #!/bin/bash
 
 # Variables
-PARTITIONS=("boot" "system" "system_ext" "product" "vendor" "odm")
+PARTITIONS=(
+    "boot" "dtbo" "init_boot"
+    "odm" "product" "system" "system_dlkm" "system_ext"
+    "vendor" "vendor_boot" "vendor_dlkm"
+    "vbmeta" "vbmeta_system"
+)
+# ROM metadata
 ROM_NAME="$MAKEFILENAME"
-TARGET_FILES="out/target/product/$DEVICE_CODENAME/ota_target_files.zip"
-OTA_ZIP="out/target/product/$DEVICE_CODENAME/lineage_${MAKEFILENAME}_${VARIANT}.zip"
-LOG_FILE="build.log"
+DEVICE="$DEVICE_CODENAME"
+TARGET_FILES="out/target/product/$DEVICE/ota_target_files.zip"
+OTA_ZIP="out/target/product/$DEVICE/lineage_${ROM_NAME}_${VARIANT}.zip"
+LOG_FILE="build_$(date +%Y%m%d_%H%M%S).log"
+
+# ===== 64-bit Enforcement =====
+export TARGET_ARCH=arm64
+export TARGET_SUPPORTS_32_BIT_APPS=false
 
 # CCache settings
 CCACHE_DIR="${CCACHE_DIR:-$HOME/.ccache}"
@@ -263,41 +274,86 @@ upload_file() {
         echo "Response: $response"
     fi
 }
-
 # Function to build a partition image if not found
 build_partition() {
     check_timeout
-    
+
     local partition="$1"
-    echo "Building $partition image..."
-    source build/envsetup.sh || . build/envsetup.sh
-    lunch $MAKEFILENAME-$VARIANT
-    m "$partition"image -j$(nproc --all)
-    upload_file "out/target/product/$DEVICE_CODENAME/${partition}.img"
-}
+    local build_cmd=""
+    local img_path="out/target/product/$DEVICE/${partition}.img"
 
-# Function to generate `payload.bin` and OTA ZIP
-generate_ota_zip() {
-    check_timeout
-    
-    echo "Generating OTA ZIP with payload.bin..."
+    echo "[$(date '+%H:%M:%S')] Building $partition" | tee -a "$LOG_FILE"
 
-    source build/envsetup.sh
-    lunch $MAKEFILENAME-$VARIANT
-    m dist
+    case "$partition" in
+        "system_ext") build_cmd="systemextimage || system_extimage" ;;
+        "system_dlkm"|"vendor_dlkm") build_cmd="$partition" ;;
+        "vbmeta"|"vbmeta_system") build_cmd="$partition" ;;
+        "vendor_boot") build_cmd="vendor_bootimage" ;;
+        *) build_cmd="${partition}image" ;;
+    esac
 
-    if [ ! -f "$TARGET_FILES" ]; then
-        echo "Error: Target files package ($TARGET_FILES) not found."
+    if ! m $build_cmd -j$(nproc) >> "$LOG_FILE" 2>&1; then
+        echo "ERROR: Failed to build $partition" | tee -a "$LOG_FILE"
         exit 1
     fi
 
-    ./build/tools/releasetools/ota_from_target_files -v \
-        -p out/host/linux-x86 \
-        --block \
-        --full \
-        "$TARGET_FILES" "$OTA_ZIP"
+    # Verify partition was created
+    if [ ! -f "$img_path" ]; then
+        echo "ERROR: $partition image not generated!" | tee -a "$LOG_FILE"
+        exit 1
+    fi
+}
 
-    upload_file "$OTA_ZIP"
+# Function to verify partition images
+verify_partitions() {
+    check_timeout
+
+    echo "[$(date '+%H:%M:%S')] Verifying partitions..." | tee -a "$LOG_FILE"
+    
+    for partition in "${PARTITIONS[@]}"; do
+        local img_path="out/target/product/$DEVICE/${partition}.img"
+        
+        # Skip verification for boot/recovery partitions
+        [[ "$partition" == "boot" || "$partition" == "vendor_boot" ]] && continue
+        
+        # Check file exists
+        if [ ! -f "$img_path" ]; then
+            echo "ERROR: $partition.img missing!" | tee -a "$LOG_FILE"
+            exit 1
+        fi
+        
+        # Verify 64-bit for applicable partitions
+        if [[ "$partition" == "system" || "$partition" == "system_ext" || "$partition" == "vendor" ]]; then
+            if file "$img_path" | grep -q "ELF 32-bit"; then
+                echo "ERROR: 32-bit components in $partition.img!" | tee -a "$LOG_FILE"
+                exit 1
+            fi
+        fi
+        
+        # Log partition size
+        local size=$(du -h "$img_path" | cut -f1)
+        echo "Verified: $partition.img ($size)" | tee -a "$LOG_FILE"
+    done
+}
+
+# Function to generate OTA package
+generate_ota() {
+    check_timeout
+
+    echo "[$(date '+%H:%M:%S')] Generating OTA package" | tee -a "$LOG_FILE"
+    
+    if ! m otapackage -j$(nproc) >> "$LOG_FILE" 2>&1; then
+        echo "OTA generation failed!" | tee -a "$LOG_FILE"
+        exit 1
+    fi
+    
+    if [ ! -f "$OTA_ZIP" ]; then
+        echo "ERROR: OTA package not created at $OTA_ZIP" | tee -a "$LOG_FILE"
+        exit 1
+    fi
+    
+    local ota_size=$(du -h "$OTA_ZIP" | cut -f1)
+    echo "OTA package generated: $OTA_ZIP ($ota_size)" | tee -a "$LOG_FILE"
 }
 
 # Setup ccache with download option
@@ -319,30 +375,39 @@ setup_ccache() {
     fi
 }
 
-# Main execution
-{
-    echo "===== BUILD STARTED [$(date '+%Y-%m-%d %H:%M:%S')] ====="
-    echo "Timeout set to: $(printf '%02d:%02d:%02d' $((TIMEOUT_SECONDS/3600)) $(( (TIMEOUT_SECONDS%3600)/60 )) $((TIMEOUT_SECONDS%60)))"
+# ===== Main Execution =====
+main() {
+    echo "===== 64-bit Build Started =====" | tee -a "$LOG_FILE"
+    echo "Device: $DEVICE" | tee -a "$LOG_FILE"
+    echo "Build Variant: $VARIANT" | tee -a "$LOG_FILE"
+    echo "Timestamp: $(date)" | tee -a "$LOG_FILE"
     
-    setup_ccache
-    get_pixeldrain_file_ids
-
+    # Setup environment
+    source build/envsetup.sh
+    lunch lineage_${DEVICE}-${VARIANT}
+    
+    # Clean previous builds
+    echo "Cleaning previous build..." | tee -a "$LOG_FILE"
+    m installclean >> "$LOG_FILE" 2>&1
+    
+    # Build all partitions
     for partition in "${PARTITIONS[@]}"; do
-        run_with_timeout download_partition "$partition"
-        if [ ! -f "out/target/product/$DEVICE_CODENAME/${partition}.img" ]; then
-            run_with_timeout build_partition "$partition"
-        fi
+        build_partition "$partition"
     done
-
-    if [ $TIMEOUT_REACHED -eq 0 ]; then
-        echo "All partitions processed. Generating OTA ZIP..."
-        run_with_timeout generate_ota_zip
-        echo "ROM build process completed."
-        ccache -s
-    fi
     
-    echo "===== BUILD FINISHED [$(date '+%Y-%m-%d %H:%M:%S')] ====="
-} | tee -a "$LOG_FILE"
+    # Verification
+    verify_partitions
+    
+    # Generate OTA
+    generate_ota
+    
+    echo "===== Build Completed Successfully =====" | tee -a "$LOG_FILE"
+    echo "Final OTA: $OTA_ZIP" | tee -a "$LOG_FILE"
+    echo "Log file: $LOG_FILE" | tee -a "$LOG_FILE"
+}
+
+# Execute main function and log output
+main 2>&1 | tee -a "$LOG_FILE"
 
 # Final status report
 show_status
