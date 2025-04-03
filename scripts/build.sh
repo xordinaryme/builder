@@ -3,11 +3,11 @@ set -e
 
 # ===== Configuration =====
 # Essential Variables (should be set as env vars or defined here)
+ROM_NAME="${MAKEFILENAME%%_*}"  # Extract ROM base name
 CCACHE_DIR=${HOME}/.ccache
-
-# Derived Variables
+CCACHE_TAR="${ROM_NAME}.ccache.tar.gz"
 CCACHE_COPY_DIR="$HOME/ccache_copy"
-CCACHE_TAR="ccache.tar.gz"
+
 SAFE_TIME=5760  # 1 hour and 35 minutes in seconds
 LOG_FILE="build.log"
 OTA_ZIP="${OUT_DIR}/target/product/${DEVICE_CODENAME}/*.zip"
@@ -36,14 +36,18 @@ setup_ccache() {
 }
 
 download_ccache() {
-    echo "Checking for existing ccache on PixelDrain..."
+    echo "Checking for existing ccache for ${ROM_NAME} on PixelDrain..."
     response=$(curl -s -H "Authorization: Basic $(echo -n ":$PIXELDRAIN_API_KEY" | base64)" \
         "https://pixeldrain.com/api/user/files") || return 1
-    
-    ccache_file_id=$(echo "$response" | jq -r '[.files[] | select(.name | contains("ccache"))] | sort_by(.date_upload) | last | .id')
-    
-    [ -z "$ccache_file_id" ] || [ "$ccache_file_id" = "null" ] && return 1
-    
+
+    ccache_file_id=$(echo "$response" | jq -r --arg CCACHE_TAR "$CCACHE_TAR" \
+        '[.files[] | select(.name | test("^" + $CCACHE_TAR + "$"))] | sort_by(.date_upload) | last | .id')
+      
+    if [ -z "$ccache_file_id" ] || [ "$ccache_file_id" = "null" ]; then
+        echo "No previous ccache found for ${ROM_NAME}, starting fresh."
+        return 1
+    fi
+
     echo "Downloading ccache (ID: $ccache_file_id)..."
     if curl -L -o "$CCACHE_TAR" "https://pixeldrain.com/api/file/$ccache_file_id?download"; then
         mkdir -p "$CCACHE_DIR"
@@ -57,21 +61,26 @@ download_ccache() {
 }
 
 compress_and_upload_ccache() {
-    echo "Creating safe copy of ccache..."
+    echo "Creating safe copy of ccache for ${ROM_NAME}..."
     mkdir -p "$CCACHE_COPY_DIR"
     rsync -a --delete "$CCACHE_DIR/" "$CCACHE_COPY_DIR/" || cp -a "$CCACHE_DIR/." "$CCACHE_COPY_DIR/"
-    
+
     echo "Compressing ccache..."
     tar -czf "$CCACHE_TAR" -C "$CCACHE_COPY_DIR" . || return 1
-    
-    echo "Uploading to PixelDrain..."
+
+    echo "Uploading ${CCACHE_TAR} to PixelDrain..."
     response=$(curl -s -X POST \
         -H "Authorization: Basic $(echo -n ":$PIXELDRAIN_API_KEY" | base64)" \
         -F "file=@$CCACHE_TAR" \
         "https://pixeldrain.com/api/file") || return 1
-    
+
     file_id=$(echo "$response" | jq -r '.id')
-    [ -n "$file_id" ] && [ "$file_id" != "null" ] && echo "Uploaded: https://pixeldrain.com/u/$file_id"
+    if [ -n "$file_id" ] && [ "$file_id" != "null" ]; then
+        echo "Uploaded: https://pixeldrain.com/u/$file_id"
+    else
+        echo "Failed to upload ccache!"
+        return 1
+    fi
 }
 
 upload_ota() {
