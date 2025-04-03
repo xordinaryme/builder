@@ -98,31 +98,31 @@ upload_ota() {
     fi
 }
 
-monitor_time_with_logs() {
-    local start_time=$(date +%s)
-    local last_display_time=$start_time
-    
-    while true; do
-        local current_time=$(date +%s)
-        local elapsed=$((current_time - start_time))
-        local remaining=$((SAFE_TIME - elapsed))
-        
-        (( remaining <= 0 )) && {
-            echo "Timeout approaching! Saving ccache..."
-            compress_and_upload_ccache
-            exit 0
-        }
-        
-        if (( current_time - last_display_time >= 300 )); then
-            echo -ne "\r$(date): Timer Running. Elapsed: ${elapsed}s / Timeout: ${SAFE_TIME}s | Remaining: ${remaining}s"
-            echo -e "\n--- Latest Build Logs ---"
-            tail -n 10 "$LOG_FILE"
-            echo -e "-------------------------"
-            last_display_time=$current_time
-        fi
-        sleep 1
-    done
-}
+#    local start_time=$(date +%s)
+# monitor_time_with_logs() {
+#    local last_display_time=$start_time
+#    
+#    while true; do
+#        local current_time=$(date +%s)
+#        local elapsed=$((current_time - start_time))
+#        local remaining=$((SAFE_TIME - elapsed))
+#        
+#        (( remaining <= 0 )) && {
+#            echo "Timeout approaching! Saving ccache..."
+#            compress_and_upload_ccache
+#            exit 0
+#        }
+#        
+#        if (( current_time - last_display_time >= 300 )); then
+#            echo -ne "\r$(date): Timer Running. Elapsed: ${elapsed}s / Timeout: ${SAFE_TIME}s | Remaining: ${remaining}s"
+#            echo -e "\n--- Latest Build Logs ---"
+#            tail -n 10 "$LOG_FILE"
+#            echo -e "-------------------------"
+#            last_display_time=$current_time
+#        fi
+#        sleep 1
+#    done
+#}
 
 build() {
     echo "Starting build..."
@@ -136,16 +136,16 @@ build() {
 }
 
 # ===== Main Execution =====
-{
+#{
     echo "===== Build Script Starting ====="
     echo "ROM: $MAKEFILENAME"
     echo "Device: $DEVICE_CODENAME"
     echo "Variant: $VARIANT"
     
-    # Start monitoring
-    : > "$LOG_FILE"
-    monitor_time_with_logs &
-    TIMER_PID=$!
+    ## Start monitoring
+    #: > "$LOG_FILE"
+    #monitor_time_with_logs &
+    #TIMER_PID=$!
     
     # Build process
     setup_ccache
@@ -159,4 +159,4 @@ build() {
     upload_ota
     
     echo "===== Build Completed Successfully ====="
-} | tee -a "$LOG_FILE"
+#} | tee -a "$LOG_FILE"
