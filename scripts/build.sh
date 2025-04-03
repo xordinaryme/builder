@@ -74,6 +74,30 @@ compress_and_upload_ccache() {
     [ -n "$file_id" ] && [ "$file_id" != "null" ] && echo "Uploaded: https://pixeldrain.com/u/$file_id"
 }
 
+upload_ota() {
+    echo "Uploading OTA ZIP..."
+    ota_file=$(find "${OUT_DIR}/target/product/${DEVICE_CODENAME}" -name "*.zip" -type f | head -n 1)
+    
+    if [ -z "$ota_file" ]; then
+        echo "No OTA ZIP file found!"
+        return 1
+    fi
+    
+    echo "Found OTA ZIP: $ota_file"
+    response=$(curl -s -X POST \
+        -H "Authorization: Basic $(echo -n ":$PIXELDRAIN_API_KEY" | base64)" \
+        -F "file=@$ota_file" \
+        "https://pixeldrain.com/api/file") || return 1
+    
+    file_id=$(echo "$response" | jq -r '.id')
+    if [ -n "$file_id" ] && [ "$file_id" != "null" ]; then
+        echo "OTA ZIP uploaded: https://pixeldrain.com/u/$file_id"
+    else
+        echo "Failed to upload OTA ZIP!"
+        return 1
+    fi
+}
+
 monitor_time_with_logs() {
     local start_time=$(date +%s)
     local last_display_time=$start_time
@@ -130,6 +154,9 @@ build() {
     
     # Final ccache upload
     compress_and_upload_ccache
+    
+    # Upload OTA ZIP
+    upload_ota
     
     echo "===== Build Completed Successfully ====="
 } | tee -a "$LOG_FILE"
