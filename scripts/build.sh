@@ -109,7 +109,7 @@ monitor_time_with_logs() {
         
         (( remaining <= 0 )) && {
             echo "Timeout approaching! Saving ccache..."
-            upload_ccache
+            compress_and_upload_ccache
             exit 0
         }
         
