@@ -160,12 +160,12 @@ build() {
     setup_ccache
     download_ccache || echo "No ccache found, starting fresh"
     build
+
+    # Upload OTA ZIP
+    upload_ota
     
     # Final ccache upload
     compress_and_upload_ccache
-    
-    # Upload OTA ZIP
-    upload_ota
     
     echo "===== Build Completed Successfully ====="
 #} | tee -a "$LOG_FILE"
