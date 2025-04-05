@@ -8,7 +8,7 @@ CCACHE_DIR=${HOME}/.ccache
 CCACHE_TAR="${ROM_NAME}.ccache.tar.gz"
 CCACHE_COPY_DIR="$HOME/ccache_copy"
 
-SAFE_TIME=5400  # 1 hour and 30 minutes in seconds
+SAFE_TIME=4800  # 1 hour and 20 minutes in seconds
 LOG_FILE="build.log"
 OTA_ZIP="${OUT_DIR}/target/product/${DEVICE_CODENAME}/*.zip"
 
