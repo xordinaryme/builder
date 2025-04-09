@@ -44,11 +44,31 @@ download_ccache() {
         '[.files[] | select(.name | test("^" + $CCACHE_TAR + "$"))] | sort_by(.date_upload) | last | .id')
       
     if [ -z "$ccache_file_id" ] || [ "$ccache_file_id" = "null" ]; then
-        echo "No previous ccache found for ${ROM_NAME}, starting fresh."
-        return 1
+        echo "No previous ccache found for ${ROM_NAME} on PixelDrain. Checking GoFile..."
+        
+        # Check GoFile for ccache
+        response=$(curl -s "https://api.gofile.io/getAccountDetails?token=$GOFILE_API_KEY") || return 1
+        ccache_url=$(echo "$response" | jq -r --arg CCACHE_TAR "$CCACHE_TAR" \
+            '.data.files[] | select(.name == $CCACHE_TAR) | .link')
+        
+        if [ -z "$ccache_url" ] || [ "$ccache_url" = "null" ]; then
+            echo "No previous ccache found on GoFile either. Starting fresh."
+            return 1
+        fi
+
+        echo "Downloading ccache from GoFile..."
+        if curl -L -o "$CCACHE_TAR" "$ccache_url"; then
+            mkdir -p "$CCACHE_DIR"
+            tar -xzf "$CCACHE_TAR" -C "$CCACHE_DIR"
+            rm -f "$CCACHE_TAR"
+            return 0
+        else
+            rm -f "$CCACHE_TAR"
+            return 1
+        fi
     fi
 
-    echo "Downloading ccache (ID: $ccache_file_id)..."
+    echo "Downloading ccache (ID: $ccache_file_id) from PixelDrain..."
     if curl -L -o "$CCACHE_TAR" "https://pixeldrain.com/api/file/$ccache_file_id?download"; then
         mkdir -p "$CCACHE_DIR"
         tar -xzf "$CCACHE_TAR" -C "$CCACHE_DIR"
