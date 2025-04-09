@@ -13,8 +13,8 @@ LOG_FILE="build.log"
 OTA_ZIP="${OUT_DIR}/target/product/${DEVICE_CODENAME}/*.zip"
 
 # ===== 64-bit Enforcement =====
-export TARGET_ARCH=arm64
-export TARGET_SUPPORTS_32_BIT_APPS=false
+# export TARGET_ARCH=arm64
+# export TARGET_SUPPORTS_32_BIT_APPS=false
 
 # ===== Functions =====
 
