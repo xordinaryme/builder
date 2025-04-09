@@ -44,31 +44,11 @@ download_ccache() {
         '[.files[] | select(.name | test("^" + $CCACHE_TAR + "$"))] | sort_by(.date_upload) | last | .id')
       
     if [ -z "$ccache_file_id" ] || [ "$ccache_file_id" = "null" ]; then
-        echo "No previous ccache found for ${ROM_NAME} on PixelDrain. Checking GoFile..."
-        
-        # Check GoFile for ccache
-        response=$(curl -s "https://api.gofile.io/getAccountDetails?token=$GOFILE_API_KEY") || return 1
-        ccache_url=$(echo "$response" | jq -r --arg CCACHE_TAR "$CCACHE_TAR" \
-            '.data.files[] | select(.name == $CCACHE_TAR) | .link')
-        
-        if [ -z "$ccache_url" ] || [ "$ccache_url" = "null" ]; then
-            echo "No previous ccache found on GoFile either. Starting fresh."
-            return 1
-        fi
-
-        echo "Downloading ccache from GoFile..."
-        if curl -L -o "$CCACHE_TAR" "$ccache_url"; then
-            mkdir -p "$CCACHE_DIR"
-            tar -xzf "$CCACHE_TAR" -C "$CCACHE_DIR"
-            rm -f "$CCACHE_TAR"
-            return 0
-        else
-            rm -f "$CCACHE_TAR"
-            return 1
-        fi
+        echo "No previous ccache found for ${ROM_NAME}, starting fresh."
+        return 1
     fi
 
-    echo "Downloading ccache (ID: $ccache_file_id) from PixelDrain..."
+    echo "Downloading ccache (ID: $ccache_file_id)..."
     if curl -L -o "$CCACHE_TAR" "https://pixeldrain.com/api/file/$ccache_file_id?download"; then
         mkdir -p "$CCACHE_DIR"
         tar -xzf "$CCACHE_TAR" -C "$CCACHE_DIR"
@@ -105,7 +85,7 @@ compress_and_upload_ccache() {
 
 upload_ota() {
     echo "Uploading OTA ZIP..."
-    ota_file=$(find "out/target/product/${DEVICE_CODENAME}" -name "Arrow-v13.1-topaz*.zip" -type f | head -n 1)
+    ota_file=$(find "out/target/product/${DEVICE_CODENAME}" -name "lineage-20.0*topaz.zip" -type f | head -n 1)
     
     if [ -z "$ota_file" ]; then
         echo "No OTA ZIP file found!"
@@ -127,54 +107,54 @@ upload_ota() {
     fi
 }
 
-monitor_time_with_logs() {
-    local start_time=$(date +%s)
-    local last_display_time=$start_time
-    
-    while true; do
-        local current_time=$(date +%s)
-        local elapsed=$((current_time - start_time))
-        local remaining=$((SAFE_TIME - elapsed))
-        
-        (( remaining <= 0 )) && {
-            echo "Timeout approaching! Saving ccache..."
-            compress_and_upload_ccache
-            exit 0
-        }
-        
-        if (( current_time - last_display_time >= 300 )); then
-            echo -ne "\r$(date): Timer Running. Elapsed: ${elapsed}s / Timeout: ${SAFE_TIME}s | Remaining: ${remaining}s"
-            echo -e "\n--- Latest Build Logs ---"
-            tail -n 10 "$LOG_FILE"
-            echo -e "-------------------------"
-            last_display_time=$current_time
-        fi
-        sleep 1
-    done
-}
+#monitor_time_with_logs() {
+#    local start_time=$(date +%s)
+#    local last_display_time=$start_time
+#    
+#    while true; do
+#        local current_time=$(date +%s)
+#        local elapsed=$((current_time - start_time))
+#        local remaining=$((SAFE_TIME - elapsed))
+#        
+#        (( remaining <= 0 )) && {
+#            echo "Timeout approaching! Saving ccache..."
+#            compress_and_upload_ccache
+#            exit 0
+#        }
+#        
+#        if (( current_time - last_display_time >= 300 )); then
+#            echo -ne "\r$(date): Timer Running. Elapsed: ${elapsed}s / Timeout: ${SAFE_TIME}s | Remaining: ${remaining}s"
+#            echo -e "\n--- Latest Build Logs ---"
+#            tail -n 10 "$LOG_FILE"
+#            echo -e "-------------------------"
+#            last_display_time=$current_time
+#        fi
+#        sleep 1
+#   done
+#}
 
 build() {
     echo "Starting build..."
     source build/envsetup.sh || . build/envsetup.sh
     lunch "$MAKEFILENAME-$VARIANT" || exit 1
     [ -n "$EXTRACMD" ] && eval "$EXTRACMD"
-    $TARGET -j$(nproc --all) # >> "$LOG_FILE" 2>&1 || {
+    $TARGET -j$(nproc --all)  #>> "$LOG_FILE" 2>&1 || {
     #    echo "Build failed!"
     #    exit 1
     #}
 }
 
 # ===== Main Execution =====
-{
+#{
     echo "===== Build Script Starting ====="
     echo "ROM: $MAKEFILENAME"
     echo "Device: $DEVICE_CODENAME"
     echo "Variant: $VARIANT"
     
     # Start monitoring
-    : > "$LOG_FILE"
-    monitor_time_with_logs &
-    TIMER_PID=$!
+    #: > "$LOG_FILE"
+    #monitor_time_with_logs &
+    #TIMER_PID=$!
     
     # Build process
     setup_ccache
@@ -188,4 +168,4 @@ build() {
     compress_and_upload_ccache
     
     echo "===== Build Completed Successfully ====="
-} | tee -a "$LOG_FILE"
+#} | tee -a "$LOG_FILE"
