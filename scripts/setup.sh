@@ -17,5 +17,6 @@ setup() {
 
     sudo apt upgrade -y
 }
+git-lfs install
 echo "Setting Up AOSP Build Environment"
 setup
