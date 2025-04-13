@@ -13,8 +13,8 @@ LOG_FILE="build.log"
 OTA_ZIP="${OUT_DIR}/target/product/${DEVICE_CODENAME}/*.zip"
 
 # ===== 64-bit Enforcement =====
-# export TARGET_ARCH=arm64
-# export TARGET_SUPPORTS_32_BIT_APPS=false
+ export TARGET_ARCH=arm64
+ export TARGET_SUPPORTS_32_BIT_APPS=false
 
 # ===== Functions =====
 
@@ -107,41 +107,41 @@ upload_ota() {
     fi
 }
 
-#monitor_time_with_logs() {
-#    local start_time=$(date +%s)
-#    local last_display_time=$start_time
-#    
-#    while true; do
-#        local current_time=$(date +%s)
-#        local elapsed=$((current_time - start_time))
-#        local remaining=$((SAFE_TIME - elapsed))
-#        
-#        (( remaining <= 0 )) && {
-#            echo "Timeout approaching! Saving ccache..."
-#            compress_and_upload_ccache
-#            exit 0
-#        }
-#        
-#        if (( current_time - last_display_time >= 300 )); then
-#            echo -ne "\r$(date): Timer Running. Elapsed: ${elapsed}s / Timeout: ${SAFE_TIME}s | Remaining: ${remaining}s"
-#            echo -e "\n--- Latest Build Logs ---"
-#            tail -n 10 "$LOG_FILE"
-#            echo -e "-------------------------"
-#            last_display_time=$current_time
-#        fi
-#        sleep 1
-#   done
-#}
+monitor_time_with_logs() {
+    local start_time=$(date +%s)
+    local last_display_time=$start_time
+    
+    while true; do
+        local current_time=$(date +%s)
+        local elapsed=$((current_time - start_time))
+        local remaining=$((SAFE_TIME - elapsed))
+        
+        (( remaining <= 0 )) && {
+            echo "Timeout approaching! Saving ccache..."
+            compress_and_upload_ccache
+            exit 0
+        }
+        
+        if (( current_time - last_display_time >= 300 )); then
+            echo -ne "\r$(date): Timer Running. Elapsed: ${elapsed}s / Timeout: ${SAFE_TIME}s | Remaining: ${remaining}s"
+            echo -e "\n--- Latest Build Logs ---"
+            tail -n 10 "$LOG_FILE"
+            echo -e "-------------------------"
+            last_display_time=$current_time
+        fi
+        sleep 1
+   done
+}
 
 build() {
     echo "Starting build..."
     source build/envsetup.sh || . build/envsetup.sh
     lunch "$MAKEFILENAME-$VARIANT" || exit 1
     [ -n "$EXTRACMD" ] && eval "$EXTRACMD"
-    $TARGET -j$(nproc --all)  #>> "$LOG_FILE" 2>&1 || {
-    #    echo "Build failed!"
-    #    exit 1
-    #}
+    $TARGET -j$(nproc --all)  >> "$LOG_FILE" 2>&1 || {
+        echo "Build failed!"
+        exit 1
+    }
 }
 
 # ===== Main Execution =====
@@ -152,9 +152,9 @@ build() {
     echo "Variant: $VARIANT"
     
     # Start monitoring
-    #: > "$LOG_FILE"
-    #monitor_time_with_logs &
-    #TIMER_PID=$!
+    : > "$LOG_FILE"
+    monitor_time_with_logs &
+    TIMER_PID=$!
     
     # Build process
     setup_ccache
