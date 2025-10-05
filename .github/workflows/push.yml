@@ -24,6 +24,6 @@ jobs:
       uses: actions-js/push@master
       with:
         github_token: ${{ secrets.GH_TOKEN }}
-        author_email: '108690954+KDEFFALT@users.noreply.github.com'
-        author_name: 'rootfs'
+        author_email: '224786693+xordinaryme@users.noreply.github.com'
+        author_name: 'xordinaryme'
         message: 'BUILD TRIGGERED'
