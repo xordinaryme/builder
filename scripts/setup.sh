@@ -11,7 +11,7 @@ setup() {
         rsync schedtool squashfs-tools zip \
         android-tools-adb android-tools-fastboot \
         python3 python3-pip jq \
-        repo \
+        repo git \
         git-lfs \
         android-sdk-platform-tools-common
 
