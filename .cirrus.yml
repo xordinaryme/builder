@@ -1,9 +1,9 @@
 env:
     DEVICE_CODENAME: topaz # Enter your device codename
-    ROMREPO: https://github.com/PixelOS-AOSP/manifest.git -b thirteen # Enter ROM repo link
+    ROMREPO: https://github.com/PixelExperience/manifest.git -b thirteen-plus # Enter ROM repo link
     LOCALMANIFEST: https://github.com/xordinaryme/local_manifest.git -b main # Enter local_manifest link
     MAKEFILENAME: aosp_topaz # Enter makefile name (example: aosp_fleur)
-    VARIANT: userdebug # Enter build variant (eng, user, userdebug)
+    VARIANT: eng # Enter build variant (eng, user, userdebug)
     EXTRACMD: # If you want to run any extra command before build
     TARGET: m bacon # Enter target (example: m bacon, make bacon, mka bacon)
     PIXELDRAIN_API_KEY: "ENCRYPTED[!35e35e8aae0cbec39f97949f2bd9e0f7ba7c9698953413c217b1b3cbef847c697cd1a9890f182d6d16a3d9f1eb211d90!]"
