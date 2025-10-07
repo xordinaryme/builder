@@ -1,10 +1,10 @@
 #!/bin/bash
 
 sync_repo() {
-    repo init --depth=1 --no-repo-verify --git-lfs -u $ROMREPO -g default,-mips,-darwin,-notdefault
+    repo init --depth=1 --no-repo-verify -u $ROMREPO --git-lfs
     rm -rf .repo/local_manifests
     git clone $LOCALMANIFEST .repo/local_manifests
-    repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync -j$(nproc --all)
+    repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync -j10
 }
 
 echo "Syncing ROM & Device Sources"
