@@ -1,11 +1,11 @@
 env:
-    DEVICE_CODENAME: topaz # Enter your device codename
-    ROMREPO: https://github.com/crdroidandroid/android.git -b 13.0 # Enter ROM repo link
+    DEVICE_CODENAME: tapas # Enter your device codename
+    ROMREPO: https://android.googlesource.com/platform/manifest -b android13-release # Enter ROM repo link
     LOCALMANIFEST: https://github.com/xordinaryme/local_manifest.git -b main # Enter local_manifest link
-    MAKEFILENAME: lineage_topaz # Enter makefile name (example: aosp_fleur)
+    MAKEFILENAME: aosp_tapas # Enter makefile name (example: aosp_fleur)
     VARIANT: userdebug # Enter build variant (eng, user, userdebug)
     EXTRACMD: # If you want to run any extra command before build
-    TARGET: m bacon # Enter target (example: m bacon, make bacon, mka bacon)
+    TARGET: m # Enter target (example: m bacon, make bacon, mka bacon)
     PIXELDRAIN_API_KEY: "ENCRYPTED[!35e35e8aae0cbec39f97949f2bd9e0f7ba7c9698953413c217b1b3cbef847c697cd1a9890f182d6d16a3d9f1eb211d90!]"
 
 # DONT MODIFY FROM HERE #
