@@ -9,6 +9,8 @@ SAFE_TIME=5760
 LOG_FILE="build.log"
 OTA_ZIP="${OUT_DIR}/target/product/${DEVICE_CODENAME}/*.zip"
 
+export LC_ALL=C 
+
 cleanup() {
     kill "$TIMER_PID" 2>/dev/null || true
     rm -rf "$CCACHE_COPY_DIR" "$CCACHE_TAR"
