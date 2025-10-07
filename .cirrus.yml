@@ -1,6 +1,6 @@
 env:
     DEVICE_CODENAME: tapas # Enter your device codename
-    ROMREPO: https://android.googlesource.com/platform/manifest -b android13-release # Enter ROM repo link
+    ROMREPO: https://android.googlesource.com/platform/manifest -b android-13.0.0_r84 # Enter ROM repo link
     LOCALMANIFEST: https://github.com/xordinaryme/local_manifest.git -b main # Enter local_manifest link
     MAKEFILENAME: aosp_tapas # Enter makefile name (example: aosp_fleur)
     VARIANT: userdebug # Enter build variant (eng, user, userdebug)
