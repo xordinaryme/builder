@@ -2,7 +2,7 @@
 
 set_requirements() {
 rm -rf vendor/aosp
-git clone --depth=1 https://github.com/ordinary-topaz-lab/vendor_aosp -b thirteen vendor/aosp
+git clone --depth=1 https://github.com/ordinary-topaz-lab/vendor_aosp_legacy -b thirteen vendor/aosp
 }
 
 set_requirements
