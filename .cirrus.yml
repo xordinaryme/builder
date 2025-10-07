@@ -1,8 +1,8 @@
 env:
     DEVICE_CODENAME: tapas # Enter your device codename
-    ROMREPO: https://github.com/PixelExperience-LEGACY-edition/manifest.git -b thirteen-plus # Enter ROM repo link
+    ROMREPO: https://github.com/ProjectInfinity-X/manifest -b 16 # Enter ROM repo link
     LOCALMANIFEST: https://github.com/xordinaryme/local_manifest.git -b main # Enter local_manifest link
-    MAKEFILENAME: aosp_tapas # Enter makefile name (example: aosp_fleur)
+    MAKEFILENAME: infinity_tapas # Enter makefile name (example: aosp_fleur)
     VARIANT: userdebug # Enter build variant (eng, user, userdebug)
     EXTRACMD: # If you want to run any extra command before build
     TARGET: mka bacon # Enter target (example: m bacon, make bacon, mka bacon)
