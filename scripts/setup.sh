@@ -18,4 +18,3 @@ sudo apt update && sudo apt install -y \
 sudo apt upgrade -y
     
 echo "Setting Up AOSP Build Environment"
-setup
