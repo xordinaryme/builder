@@ -52,22 +52,22 @@ upload_ota() {
     [ -n "$file_id" ] && [ "$file_id" != "null" ] && echo "OTA ZIP uploaded: https://pixeldrain.com/u/$file_id"
 }
 
-monitor_time_with_logs() {
-    local start_time=$(date +%s)
-    local last_display_time=$start_time
-    while true; do
-        local current_time=$(date +%s)
-        local elapsed=$((current_time - start_time))
-        local remaining=$((SAFE_TIME - elapsed))
-        (( remaining <= 0 )) && { compress_and_upload_ccache; exit 0; }
-        if (( current_time - last_display_time >= 300 )); then
-            echo -ne "\r$(date): Elapsed: ${elapsed}s | Remaining: ${remaining}s"
-            tail -n 10 "$LOG_FILE"
-            last_display_time=$current_time
-        fi
-        sleep 1
-    done
-}
+# monitor_time_with_logs() {
+#    local start_time=$(date +%s)
+#    local last_display_time=$start_time
+#    while true; do
+#        local current_time=$(date +%s)
+#        local elapsed=$((current_time - start_time))
+#        local remaining=$((SAFE_TIME - elapsed))
+#        (( remaining <= 0 )) && { compress_and_upload_ccache; exit 0; }
+#        if (( current_time - last_display_time >= 300 )); then
+#            echo -ne "\r$(date): Elapsed: ${elapsed}s | Remaining: ${remaining}s"
+#            tail -n 10 "$LOG_FILE"
+#            last_display_time=$current_time
+#        fi
+#        sleep 1
+#    done
+# }
 
 build() {
     source build/envsetup.sh || . build/envsetup.sh
@@ -80,8 +80,8 @@ echo "ROM: $MAKEFILENAME"
 echo "Device: $DEVICE_CODENAME"
 echo "Variant: $VARIANT"
 : > "$LOG_FILE"
-monitor_time_with_logs &
-TIMER_PID=$!
+# monitor_time_with_logs &
+# TIMER_PID=$!
 setup_ccache
 download_ccache || echo "No ccache found"
 build
