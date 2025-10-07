@@ -5,7 +5,7 @@ env:
     MAKEFILENAME: aosp_topaz # Enter makefile name (example: aosp_fleur)
     VARIANT: eng # Enter build variant (eng, user, userdebug)
     EXTRACMD: # If you want to run any extra command before build
-    TARGET: m bacon # Enter target (example: m bacon, make bacon, mka bacon)
+    TARGET: mka bacon # Enter target (example: m bacon, make bacon, mka bacon)
     PIXELDRAIN_API_KEY: "ENCRYPTED[!35e35e8aae0cbec39f97949f2bd9e0f7ba7c9698953413c217b1b3cbef847c697cd1a9890f182d6d16a3d9f1eb211d90!]"
 
 # DONT MODIFY FROM HERE #
