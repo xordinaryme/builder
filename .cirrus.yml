@@ -1,6 +1,6 @@
 env:
     DEVICE_CODENAME: topaz # Enter your device codename
-    ROMREPO: https://github.com/PixelExperience/manifest.git -b thirteen-plus # Enter ROM repo link
+    ROMREPO: https://github.com/PixelExperience-LEGACY-edition/manifest.git -b thirteen-plus # Enter ROM repo link
     LOCALMANIFEST: https://github.com/xordinaryme/local_manifest.git -b main # Enter local_manifest link
     MAKEFILENAME: aosp_topaz # Enter makefile name (example: aosp_fleur)
     VARIANT: eng # Enter build variant (eng, user, userdebug)
