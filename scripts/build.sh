@@ -19,7 +19,7 @@ trap cleanup EXIT
 
 setup_ccache() {
     export USE_CCACHE=1
-    ccache -M 50G
+    ccache -M 20G
     ccache -z
 }
 
