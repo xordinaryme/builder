@@ -8,7 +8,7 @@ git clone --depth=1 https://github.com/ordinary-topaz-lab/android_device_xiaomi_
 rm -rf vendor/xiaomi/tapas
 git clone --depth=1 https://github.com/ordinary-topaz-lab/proprietary_vendor_xiaomi_tapas -b 13 vendor/xiaomi/tapas
 rm -rf hardware/qcom-caf/sm6225
-git clone --depth=1 https://github.com/ordinary-topaz-lab/hardware_qcom-caf_sm6225 -b 13 hardware/qcom-caf/sm6225
+git clone --depth=1 https://github.com/ordinary-topaz-lab/hardware_qcom-caf_sm6225 -b main hardware/qcom-caf/sm6225
 
 # Required
 rm -rf vendor/aosp
