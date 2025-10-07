@@ -16,5 +16,7 @@ sudo apt update && sudo apt install -y \
     android-sdk-platform-tools-common
 
 sudo apt upgrade -y
+
+rm -rf /tmp/cirrus-ci-buil/.repo
     
 echo "Setting Up AOSP Build Environment"
