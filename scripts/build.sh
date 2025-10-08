@@ -46,7 +46,7 @@ compress_and_upload_ccache() {
 }
 
 upload_ota() {
-    ota_file=$(find "out/target/product/${DEVICE_CODENAME}" -name "PixelExperience*.zip" -type f | head -n 1)
+    ota_file=$(find "out/target/product/${DEVICE_CODENAME}" -name "lineage*.zip" -type f | head -n 1)
     [ -z "$ota_file" ] && return 1
     response=$(curl -s -X POST -H "Authorization: Basic $(echo -n ":$PIXELDRAIN_API_KEY" | base64)" \
         -F "file=@$ota_file" "https://pixeldrain.com/api/file") || return 1
