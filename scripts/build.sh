@@ -81,12 +81,30 @@ download_ccache() {
     fi
     
     echo "Found ccache file ID: $ccache_file_id"
-    echo "Downloading ccache..."
+    echo "Downloading ccache with aria2..."
     
-    if ! curl -L -o "$CCACHE_TAR" "https://pixeldrain.com/api/file/$ccache_file_id?download"; then
-        echo "Error: Failed to download ccache"
-        rm -f "$CCACHE_TAR"
-        return 1
+    # Use aria2c for faster download with multiple connections
+    if ! aria2c \
+        --max-connection-per-server=16 \
+        --split=16 \
+        --min-split-size=1M \
+        --file-allocation=none \
+        --continue=true \
+        --check-certificate=false \
+        --out="$CCACHE_TAR" \
+        --header="Authorization: Basic $(echo -n ":$PIXELDRAIN_API_KEY" | base64)" \
+        "https://pixeldrain.com/api/file/$ccache_file_id?download"; then
+        
+        echo "Error: Failed to download ccache with aria2"
+        # Fallback to curl if aria2 fails
+        echo "Trying fallback with curl..."
+        if ! curl -L -o "$CCACHE_TAR" \
+            -H "Authorization: Basic $(echo -n ":$PIXELDRAIN_API_KEY" | base64)" \
+            "https://pixeldrain.com/api/file/$ccache_file_id?download"; then
+            echo "Error: Fallback download also failed"
+            rm -f "$CCACHE_TAR"
+            return 1
+        fi
     fi
     
     echo "Extracting ccache..."
