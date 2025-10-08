@@ -10,11 +10,6 @@ LOG_FILE="build.log"
 OTA_ZIP="${OUT_DIR}/target/product/${DEVICE_CODENAME}/*.zip"
 
 export LC_ALL=C
-export TARGET_NO_KERNEL_OVERRIDE=true
-export TARGET_NO_KERNEL=true
-export TARGET_FORCE_PREBUILT_KERNEL=true
-export TARGET_KERNEL_SOURCE=device/xiaomi/tapas-kernel/kernel-headers
-export TARGET_KERNEL_VERSION=5.15
 
 cleanup() {
     kill "$TIMER_PID" 2>/dev/null || true
