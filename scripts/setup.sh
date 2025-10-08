@@ -5,6 +5,7 @@ sudo apt update && sudo apt install -y \
     g++-multilib gcc-multilib git gnupg gperf \
     lib32readline-dev lib32z1-dev \
     liblz4-tool libncurses5-dev libsdl1.2-dev \
+    libncurses5:i386 lib32ncurses6 \
     libssl-dev libxml2 libxml2-utils \
     zstd pigz lzop \
     rsync schedtool squashfs-tools zip \
