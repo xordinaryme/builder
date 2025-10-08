@@ -8,7 +8,7 @@ sudo apt update && sudo apt install -y \
   libsdl1.2-dev libssl-dev libwxgtk3.2-dev libxml2 libxml2-utils \
   lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev \
   git repo wget jq \
-  python-is-python3
+  python-is-python3 aria2
 
 sudo apt upgrade -y
 
