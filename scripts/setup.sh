@@ -13,6 +13,6 @@ sudo apt upgrade -y
 
 wget http://archive.ubuntu.com/ubuntu/pool/universe/n/ncurses/libncurses5_6.2-0ubuntu2_amd64.deb && sudo dpkg -i libncurses5_6.2-0ubuntu2_amd64.deb && rm -rf libncurses5_6.2-0ubuntu2_amd64.deb
 
-wget http://ftp.jp.debian.org/debian/pool/main/n/ncurses/libtinfo5_6.4-4_amd64.deb & sudo dpkg -i libtinfo5_6.4-4_amd64.deb && rm -rf libtinfo5_6.4-4_amd64.deb
+wget http://ftp.cn.debian.org/debian/pool/main/n/ncurses/libtinfo5_6.4-4_amd64.deb & sudo dpkg -i libtinfo5_6.4-4_amd64.deb && rm -rf libtinfo5_6.4-4_amd64.deb
   
 echo "Setting Up AOSP Build Environment"
