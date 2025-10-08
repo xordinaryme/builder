@@ -74,7 +74,7 @@ upload_ota() {
 build() {
     . build/envsetup.sh
     lunch "$MAKEFILENAME-$VARIANT" || exit 1
-    $TARGET -j8
+    $TARGET -j10
 }
 
 echo "ROM: $MAKEFILENAME"
