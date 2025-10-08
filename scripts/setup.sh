@@ -12,7 +12,5 @@ sudo apt update && sudo apt install -y \
 sudo apt upgrade -y
 
 wget http://archive.ubuntu.com/ubuntu/pool/universe/n/ncurses/libncurses5_6.2-0ubuntu2_amd64.deb && sudo dpkg -i libncurses5_6.2-0ubuntu2_amd64.deb && rm -rf libncurses5_6.2-0ubuntu2_amd64.deb
-
-sudo apt install lib32ncurses5-dev libncurses5 libncurses5-dev -y 
   
 echo "Setting Up AOSP Build Environment"
