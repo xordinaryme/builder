@@ -6,7 +6,7 @@ env:
     VARIANT: eng # Enter build variant (eng, user, userdebug)
     EXTRACMD: # If you want to run any extra command before build
     TARGET: mka bacon # Enter target (example: m bacon, make bacon, mka bacon)
-    PIXELDRAIN_API_KEY: "ENCRYPTED[!35e35e8aae0cbec39f97949f2bd9e0f7ba7c9698953413c217b1b3cbef847c697cd1a9890f182d6d16a3d9f1eb211d90!]"
+    PIXELDRAIN_API_KEY: "ENCRYPTED[!b8e1a7c7324e2ac746b2e0de6e3f76a2daad3590015d58d83cdf650eb8703ecd05f360b374354209f96f91519428bee0!]"
 
 # DONT MODIFY FROM HERE #
 task:
