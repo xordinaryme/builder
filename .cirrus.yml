@@ -1,6 +1,6 @@
 env:
     DEVICE_CODENAME: tapas # Enter your device codename
-    ROMREPO: https://github.com/AndroidOne-Experience/manifest.git -b 15 # Enter ROM repo link
+    ROMREPO: # Enter ROM repo link
     LOCALMANIFEST: https://github.com/xordinaryme/local_manifest -b main # Enter local_manifest link
     MAKEFILENAME: aosp_tapas # Enter makefile name (example: aosp_fleur)
     VARIANT: user # Enter build variant (eng, user, userdebug)
