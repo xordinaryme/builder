@@ -220,7 +220,7 @@ build() {
     . build/envsetup.sh
     
     echo "Running lunch for $MAKEFILENAME-$VARIANT..."
-    if ! lunch "$MAKEFILENAME-$VARIANT"; then
+    if ! lunch "$MAKEFILENAME-bp1a-$VARIANT"; then
         echo "Error: lunch failed"
         exit 1
     fi
