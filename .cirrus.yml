@@ -1,11 +1,11 @@
 env:
     DEVICE_CODENAME: tapas # Enter your device codename
-    ROMREPO: https://github.com/xordinaryme/manifest.git -b 15 # Enter ROM repo link
+    ROMREPO: https://github.com/xordinaryme/aosp_manifest.git -b main # Enter ROM repo link
     LOCALMANIFEST: https://github.com/xordinaryme/local_manifest -b main # Enter local_manifest link
     MAKEFILENAME: aosp_tapas # Enter makefile name (example: aosp_fleur)
-    VARIANT: user # Enter build variant (eng, user, userdebug)
+    VARIANT: eng # Enter build variant (eng, user, userdebug)
     EXTRACMD: # If you want to run any extra command before build
-    TARGET: mka bacon # Enter target (example: m bacon, make bacon, mka bacon)
+    TARGET: m bacon # Enter target (example: m bacon, make bacon, mka bacon)
     PIXELDRAIN_API_KEY: "ENCRYPTED[!b8e1a7c7324e2ac746b2e0de6e3f76a2daad3590015d58d83cdf650eb8703ecd05f360b374354209f96f91519428bee0!]"
 
 # DONT MODIFY FROM HERE #

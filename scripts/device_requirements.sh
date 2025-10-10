@@ -1,7 +1,10 @@
 #!/bin/bash
 
 
-rm -rf hardware/qcom-caf/common
-git clone --depth=1 https://github.com/xordinaryme/android_hardware_qcom-caf_common -b lineage-23.0 hardware/qcom--caf/common
+rm -rf hardware/xiaomi
+git clone --depth=1 https://github.com/xordinaryme/hardware_xiaomi -b 13 hardware/xiaomi
+
+rm -rf vendor/aosp
+git clone --depth=1 https://github.com/xordinaryme/vendor_aosp -b thirteen-plus vendor/aosp
 
 echo "Device requirements set successfully."
