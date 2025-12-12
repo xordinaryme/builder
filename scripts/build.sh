@@ -157,7 +157,7 @@ compress_and_upload_ccache() {
 
 upload_ota() {
     echo "Looking for OTA file..."
-    ota_file=$(find "out/target/product/${DEVICE_CODENAME}" -name "aosp*.zip" -type f 2>/dev/null | head -n 1)
+    ota_file=$(find "out/target/product/${DEVICE_CODENAME}" -name "lineage*.zip" -type f 2>/dev/null | head -n 1)
     
     if [ -z "$ota_file" ]; then
         echo "Warning: No OTA file found"
